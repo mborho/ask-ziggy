@@ -393,7 +393,7 @@ class BaasGui:
 
         # Add the column to the selector
         column = selector.append_column(self.store, renderer, text=1)          
-        #column.set_property("text-column", 1)
+        column.set_property("text-column", 1)
         return selector        
         
     def open_link(self, link):
