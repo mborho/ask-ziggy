@@ -77,6 +77,7 @@ class BaasGui:
         for (p, button_label) in service_labels:  
             button = hildon.Button(gtk.HILDON_SIZE_THUMB_HEIGHT, 
                 hildon.BUTTON_ARRANGEMENT_VERTICAL, button_label)
+            #button = gtk.Button(button_label)
             button.connect("clicked", self.show_service_window, p)
             services_box.pack_start(button, True, True, 0)
             button.show()        
@@ -385,6 +386,7 @@ class BaasGui:
         if entries and type(entries) == list:
             for entry in entries:                
                 title = strip_tags(htmlentities_decode(entry.get('title','#')))
+                title += '\n<span size="x-small" style="italic">%s</span>' % self.get_link(entry)
                 self.store.append([0,title])
         else:
            self.store.append([0,'nothing found'])
@@ -392,7 +394,7 @@ class BaasGui:
         renderer.set_fixed_size(-1, 100)
 
         # Add the column to the selector
-        column = selector.append_column(self.store, renderer, text=1)          
+        column = selector.append_column(self.store, renderer, markup=1)          
         column.set_property("text-column", 1)
         return selector        
         
@@ -401,6 +403,16 @@ class BaasGui:
         osso_c = osso.Context("osso_baas_receiver", "0.0.1", False)
         osso_rpc = osso.Rpc(osso_c)
         osso_rpc.rpc_run_with_defaults("osso_browser", "open_new_window", (link,))
+
+    def get_link(self, entry):
+        link = None
+        if entry.get('unescapedUrl'):
+            link = entry['unescapedUrl']
+        elif entry.get('url'): 
+            link = entry['url']
+        elif entry.get('link'): 
+            link = entry['link']
+        return link
 
     # another callback
     def delete_event(self, widget, event, data=None):
