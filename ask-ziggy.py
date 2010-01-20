@@ -15,7 +15,7 @@ import gtk
 import osso
 import hildon
 from baas.core.plugins import PluginLoader
-from baas.core.helpers import strip_tags, htmlentities_decode
+from baas.core.helpers import strip_tags, htmlentities_decode, xmlify
 
 pluginHnd = PluginLoader(config=False,format="raw")
 pluginHnd.load_plugins()
@@ -232,11 +232,6 @@ class BaasGui:
             else: self.state.tlate[token] = languages[index-1]
         else:
             self.state.tlate[token] = languages[index]
-        #if token == "@": index -= 1
-        #if index > -1:
-            #self.state.tlate[token] = languages[index]
-        #else:
-            #self.state.tlate[token] = None
 
     def get_tlate_button(self, label, token):
         """ builds button for language selection """
@@ -371,8 +366,6 @@ class BaasGui:
                 self.open_link(self.result_data[active]['url'])
             elif self.result_data[active].get('link'): 
                 self.open_link(self.result_data[active]['link'])
-            
-        print "Current selection : %s" % current_selection
 
     def create_result_selector(self, entries=None):
         ''' renders a search reult list '''
@@ -385,8 +378,8 @@ class BaasGui:
         self.store = gtk.ListStore(int, str);
         if entries and type(entries) == list:
             for entry in entries:                
-                title = strip_tags(htmlentities_decode(entry.get('title','#')))
-                title += '\n<span size="x-small" style="italic">%s</span>' % self.get_link(entry)
+                title = '<span>%s</span>' % xmlify(htmlentities_decode(entry.get('title','#')))
+                title += '\n<span size="x-small" style="italic">%s</span>' % xmlify(self.get_link(entry))
                 self.store.append([0,title])
         else:
            self.store.append([0,'nothing found'])
