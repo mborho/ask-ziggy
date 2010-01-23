@@ -86,7 +86,7 @@ class BaasGui:
         self.box.show()
         self.window.show()
 
-    def waiting_start(self, msg):
+    def waiting_start(self, msg):        
         self.dialog = gtk.Dialog()
         self.dialog.set_title("Requesting...")
         self.dialog.show_all()
@@ -300,8 +300,19 @@ class BaasGui:
         
         commando_func = pluginHnd.commands.get(self.input_command)
         if commando_func:                        
-            term = self.prepare_term()
-            result_msg = commando_func(term)
+            term = self.prepare_term()        
+            result_msg = ''
+            try:
+                result_msg = commando_func(term)
+            except IOError, e:
+                self.waiting_stop()
+                hildon.hildon_banner_show_information(self.window, "", "No network, please check your connection!")
+            except EnvironmentError, e:
+                self.waiting_stop()
+                hildon.hildon_banner_show_information(self.window, "", str(e))
+            except Exception, e:
+                self.waiting_stop()
+                hildon.hildon_banner_show_information(self.window, "", "Error occured")
             self.result_data = result_msg
         else:
             self.result_data = [{'title':'Uups, commando not known\n'}]
@@ -321,6 +332,9 @@ class BaasGui:
     def get_result_markup(self):
         """ returns pango formatted string """
         data = self.result_data
+        if not data:
+            return ''
+
         if self.input_command == 'tlate':
             text = htmlentities_decode(data.get('text'))
             lang = data.get('lang')
@@ -392,7 +406,6 @@ class BaasGui:
         return selector        
         
     def open_link(self, link):
-        print "open " + link
         osso_c = osso.Context("osso_baas_receiver", "0.0.1", False)
         osso_rpc = osso.Rpc(osso_c)
         osso_rpc.rpc_run_with_defaults("osso_browser", "open_new_window", (link,))
