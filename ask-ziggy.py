@@ -43,7 +43,7 @@ class AppState(object):
             self.langs = {}
             self.tlate = {}
 
-class BaasGui:
+class BaasGui(object):
 
     def __init__(self):
         self.state = AppState()
@@ -84,18 +84,7 @@ class BaasGui:
         
         services_box.show()
         self.box.show()
-        self.window.show()
-
-    def waiting_start(self, msg):        
-        self.dialog = gtk.Dialog()
-        self.dialog.set_title("Requesting...")
-        self.dialog.show_all()
-        hildon.hildon_gtk_window_set_progress_indicator(self.dialog, 1)
-#        self.dialog.run() 
-               
-    def waiting_stop(self):
-        hildon.hildon_gtk_window_set_progress_indicator(self.dialog, 0)
-        self.dialog.destroy()                  
+        self.window.show()             
         
     def show_service_window(self, widget, service_name):
 
@@ -103,8 +92,8 @@ class BaasGui:
         self.input_buffer = ''
         self.output_result = 'result'
         
-        win = hildon.StackableWindow()
-        win.set_title(wording.get(service_name))
+        self.service_win = hildon.StackableWindow()
+        self.service_win.set_title(wording.get(service_name))
 
         # text input
         textentry = hildon.TextView()
@@ -127,6 +116,7 @@ class BaasGui:
         button = hildon.Button(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_AUTO_HEIGHT, 
             hildon.BUTTON_ARRANGEMENT_HORIZONTAL, "go")
         button.connect("clicked", self.ask_buddy)
+        button.connect("pressed", self.waiting_start)
         
         if self.input_command == "deli":
             input_table = self.input_deli(textentry, button)
@@ -143,15 +133,13 @@ class BaasGui:
             input_table.attach(button, 4, 5, 0, 1)
 
         # the results
-        self.result_area = gtk.VBox(False, 5)
-        
+        self.result_area = gtk.VBox(False, 5)                      
         self.table = gtk.Table(8, 1, False)
         self.table.attach(input_table, 0, 1, 0 , 1)
         self.table.attach(self.result_area, 0, 1, 1 , 8)
-
         
-        win.add(self.table)
-        win.show_all()
+        self.service_win.add(self.table)
+        self.service_win.show_all()
 
     def get_lang_button(self):
         """ builds button for language selection """
@@ -293,11 +281,16 @@ class BaasGui:
         print "term %s" % term
         return term
 
+
+    def waiting_start(self, msg):   
+        hildon.hildon_gtk_window_set_progress_indicator(self.service_win, 1)
+               
+    def waiting_stop(self):
+        hildon.hildon_gtk_window_set_progress_indicator(self.service_win, 0)
+
     def ask_buddy(self, widget):
 
         self.result_data = None
-        self.waiting_start("Requesting...")
-        
         commando_func = pluginHnd.commands.get(self.input_command)
         if commando_func:                        
             term = self.prepare_term()        
@@ -305,18 +298,17 @@ class BaasGui:
             try:
                 result_msg = commando_func(term)
             except IOError, e:
-                self.waiting_stop()
+                #self.waiting_stop()
                 hildon.hildon_banner_show_information(self.window, "", "No network, please check your connection!")
             except EnvironmentError, e:
-                self.waiting_stop()
+                #self.waiting_stop()
                 hildon.hildon_banner_show_information(self.window, "", str(e))
             except Exception, e:
-                self.waiting_stop()
+                #self.waiting_stop()
                 hildon.hildon_banner_show_information(self.window, "", "Error occured")
             self.result_data = result_msg
         else:
             self.result_data = [{'title':'Uups, commando not known\n'}]
-        self.waiting_stop()
         
         if hasattr(self, 'result_output'):   
             self.result_output.destroy()
@@ -328,6 +320,7 @@ class BaasGui:
         
         self.result_area.add(self.result_output) 
         self.result_output.show()   
+        self.waiting_stop()        
    
     def get_result_markup(self):
         """ returns pango formatted string """
