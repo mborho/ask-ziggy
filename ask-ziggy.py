@@ -14,8 +14,14 @@ import sys
 import gtk
 import osso
 import hildon
+import socket
 from baas.core.plugins import PluginLoader
 from baas.core.helpers import strip_tags, htmlentities_decode, xmlify
+from urllib2 import URLError
+
+# set timeout to 10 seconds
+timeout = 10
+socket.setdefaulttimeout(timeout)
 
 pluginHnd = PluginLoader(config=False,format="raw")
 pluginHnd.load_plugins()
@@ -297,15 +303,16 @@ class BaasGui(object):
             result_msg = ''
             try:
                 result_msg = commando_func(term)
+            except URLError, e:
+                hildon.hildon_banner_show_information(self.window, "", 
+                    "Request failed, timed out.")
             except IOError, e:
-                #self.waiting_stop()
-                hildon.hildon_banner_show_information(self.window, "", "No network, please check your connection!")
+                hildon.hildon_banner_show_information(self.window, "", 
+                    "No network, please check your connection.")
             except EnvironmentError, e:
-                #self.waiting_stop()
                 hildon.hildon_banner_show_information(self.window, "", str(e))
             except Exception, e:
-                #self.waiting_stop()
-                hildon.hildon_banner_show_information(self.window, "", "Error occured")
+                hildon.hildon_banner_show_information(self.window, "", "Error occured.")
             self.result_data = result_msg
         else:
             self.result_data = [{'title':'Uups, commando not known\n'}]
