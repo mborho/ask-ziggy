@@ -83,7 +83,6 @@ class BaasGui(object):
         for (p, button_label) in service_labels:  
             button = hildon.Button(gtk.HILDON_SIZE_THUMB_HEIGHT, 
                 hildon.BUTTON_ARRANGEMENT_VERTICAL, button_label)
-            #button = gtk.Button(button_label)
             button.connect("clicked", self.show_service_window, p)
             services_box.pack_start(button, True, True, 0)
             button.show()        
@@ -99,14 +98,10 @@ class BaasGui(object):
         self.output_result = 'result'
         
         self.service_win = hildon.StackableWindow()
-        self.service_win.set_title(wording.get(service_name))
+        self.service_win.set_title(wording.get(service_name))            
 
         # text input
         textentry = hildon.TextView()
-        textentry.set_size_request(400, 40)
-
-        textentry.set_wrap_mode(gtk.WRAP_CHAR)
-        #textentry.set_placeholder("searching for")
 
         # fill text entry with last search
         last_input = self.state.buffers.get(self.input_command,'')
@@ -116,7 +111,7 @@ class BaasGui(object):
         textentry.set_buffer(old_buffer)
 
         buffer = textentry.get_buffer()
-        buffer.connect("changed", self.input_changed)              
+        buffer.connect("changed", self.input_changed)  
 
         # go button
         button = hildon.Button(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_AUTO_HEIGHT, 
@@ -125,24 +120,17 @@ class BaasGui(object):
         button.connect("pressed", self.waiting_start)
         
         if self.input_command == "deli":
-            input_table = self.input_deli(textentry, button)
-        elif self.input_command in  ['gnews','gweb','news','web','weather']:
-            input_table = self.input_websearch(textentry, button)
+            input_box = self.input_deli(textentry, button)
         elif self.input_command == "tlate":
-            input_table = self.input_translate(textentry, button)
+            input_box = self.input_translate(textentry, button)        
         else:
-            input_table = gtk.Table(1, 5, False)
-            input_table.set_row_spacings(5)
-            input_table.set_col_spacings(5)
-
-            input_table.attach(textentry, 0, 4, 0, 1)
-            input_table.attach(button, 4, 5, 0, 1)
+            input_box = self.input_websearch(textentry, button)
 
         # the results
         self.result_area = gtk.VBox(False, 5)                      
-        self.table = gtk.Table(8, 1, False)
-        self.table.attach(input_table, 0, 1, 0 , 1)
-        self.table.attach(self.result_area, 0, 1, 1 , 8)
+        self.table = gtk.Table(20, 1, False)
+        self.table.attach(input_box, 0, 1, 0 , 1)
+        self.table.attach(self.result_area, 0, 1, 1 , 20)
         
         self.service_win.add(self.table)
         self.service_win.show_all()
@@ -192,13 +180,19 @@ class BaasGui(object):
 
         if self.input_command == "gnews": lang_button = self.get_edition_button()
         else: lang_button = self.get_lang_button()
+        
+        button.set_border_width(2)
+        lang_button.set_border_width(2)
 
-        input_table = gtk.Table(2, 5, True)
-        input_table.attach(textentry, 0, 4, 0, 2)
-        input_table.attach(button, 4, 5, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL,0,5)
-        input_table.attach(lang_button, 4, 5, 0, 1, gtk.FILL|gtk.EXPAND, gtk.FILL,0,5)
+        textentry.set_size_request(400, 50)
+        lang_button.set_size_request(150, 50)
+        button.set_size_request(150, 50)
 
-        return input_table
+        box = gtk.HBox(False)
+        box.pack_start(textentry, True, True, 0)
+        box.pack_start(lang_button, False, True, 0)
+        box.pack_start(button, False, True, 0)
+        return box
 
     def input_deli_pop(self, button):
         ''' delicious request for most popular? '''
@@ -211,12 +205,19 @@ class BaasGui(object):
         pop_button.connect("toggled", self.input_deli_pop)  
         pop_button.set_active(self.state.deli_pop)
 
-        input_table = gtk.Table(2, 5, False)
-        input_table.attach(textentry, 0, 4, 0, 2)
-        input_table.attach(button, 4, 5, 1, 2, gtk.FILL,gtk.FILL,0,5)
-        input_table.attach(pop_button, 4, 5, 0, 1, gtk.FILL,gtk.FILL,0,5)
+        button.set_border_width(2)
+        pop_button.set_border_width(2)
 
-        return input_table
+        textentry.set_size_request(350, 50)
+        pop_button.set_size_request(220, 50)
+        button.set_size_request(150, 50)
+
+        box = gtk.HBox(False)
+        box.pack_start(textentry, True, True, 0)
+        box.pack_start(pop_button, False, True, 0)
+        box.pack_start(button, False, True, 0)
+        
+        return box
 
     def tlate_selected(self, selector, token):
         ''' handles gnews edition selection '''
@@ -249,6 +250,8 @@ class BaasGui(object):
 
     def input_translate(self, textentry, button):
         ''' build input fields for delicious service '''
+
+        textentry.set_wrap_mode(gtk.WRAP_CHAR)
 
         in_button = self.get_tlate_button('from','@')
         dest_button = self.get_tlate_button('to','#')
