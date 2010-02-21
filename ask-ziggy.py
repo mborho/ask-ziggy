@@ -15,6 +15,7 @@ import gtk
 import osso
 import hildon
 import socket
+from languages import *
 from baas.core.plugins import PluginLoader
 from baas.core.helpers import strip_tags, htmlentities_decode, xmlify
 from urllib2 import URLError
@@ -37,9 +38,6 @@ wording = {
     'gweb':'Google Web Search',
     'deli':'Bookmarks on delicious.com', 
     }     
-
-languages = ['en','de','fr','es','nl','it','ru','fi','no','pl','cz','au','in']#,'sv'
-gnews_editions = ['us','uk','de','fr','es','it','ru','fi','pl','cz','au','in']#,'nl_nl','de_at','de_ch']
 
 class AppState(object):
 
@@ -140,13 +138,24 @@ class BaasGui(object):
         lang_button = hildon.PickerButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_AUTO_HEIGHT, 
             hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
         lang_button.set_label("language")
-        selector = hildon.TouchSelector(text=True)        
-        for i in languages:
-            selector.append_text(i)
+        selector = hildon.TouchSelector(text=True)  
+        
+        if self.input_command in ['gweb']: 
+            for (short, name) in glanguages:
+                selector.append_text(name)
+        elif self.input_command in ['weather']:
+            for (short, name) in languages:
+                selector.append_text(short)
+        else:
+            for (short, name) in languages:
+                selector.append_text(name)
+
         lang_button.set_selector(selector)
 
         if self.state.langs.get(self.input_command):
-            lang_button.set_active(languages.index(self.state.langs[self.input_command]))
+            if self.input_command in ['gweb']: langs = glanguages
+            else: langs = languages
+            lang_button.set_active(langs.index(self.state.langs[self.input_command]))
         lang_button.connect("value-changed", self.lang_selected,self.input_command)
         lang_button.show_all()
         return lang_button
@@ -157,8 +166,8 @@ class BaasGui(object):
             hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
         lang_button.set_label("edition")
         selector = hildon.TouchSelector(text=True)        
-        for i in gnews_editions: 
-            selector.append_text(i)
+        for (short, name) in gnews_editions: 
+            selector.append_text(name)
         lang_button.set_selector(selector)
 
         if self.state.langs.get(self.input_command):
@@ -169,7 +178,9 @@ class BaasGui(object):
 
     def lang_selected(self, selector, user_data):
         ''' handles lang selection '''
-        self.state.langs[self.input_command] = languages[selector.get_active()]
+        if self.input_command in ['gweb']: langs = glanguages
+        else: langs = languages
+        self.state.langs[self.input_command] = langs[selector.get_active()]
 
     def edition_selected(self, selector, user_data):
         ''' handles gnews edition selection '''
@@ -178,15 +189,14 @@ class BaasGui(object):
     def input_websearch(self, textentry, button):
         ''' build input fields for delicious service '''
 
-        if self.input_command == "gnews": lang_button = self.get_edition_button()
+        if self.input_command == "gnews":lang_button = self.get_edition_button()
         else: lang_button = self.get_lang_button()
-        
+
+        lang_button.set_size_request(210, 50)
+        textentry.set_size_request(350, 50)         
+        button.set_size_request(120, 50)     
         button.set_border_width(2)
         lang_button.set_border_width(2)
-
-        textentry.set_size_request(400, 50)
-        lang_button.set_size_request(150, 50)
-        button.set_size_request(150, 50)
 
         box = gtk.HBox(False)
         box.pack_start(textentry, True, True, 0)
@@ -222,28 +232,40 @@ class BaasGui(object):
     def tlate_selected(self, selector, token):
         ''' handles gnews edition selection '''
         index = selector.get_active()
+        print index
         if token == "@": 
             if index == 0: self.state.tlate[token] = None
-            else: self.state.tlate[token] = languages[index-1]
+            else: self.state.tlate[token] = glang_tlate[index-1]
         else:
-            self.state.tlate[token] = languages[index]
+            self.state.tlate[token] = glang_tlate[index]
 
     def get_tlate_button(self, label, token):
         """ builds button for language selection """
         lang_button = hildon.PickerButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_AUTO_HEIGHT, 
             hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
-        lang_button.set_label(label)
-        selector = hildon.TouchSelector(text=True)   
+
+        selector = hildon.TouchSelector()
+        selector.set_column_selection_mode(hildon.TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE)
+
+        store = gtk.ListStore(str, str);
         if token == "@":
-            selector.append_text('auto')
-        for i in languages:
-            selector.append_text(i)
+            store.append(['','auto'])
+        for (short, name) in glang_tlate:
+            store.append([short,name])
+        renderer = gtk.CellRendererText()
+        renderer.set_fixed_size(-1, 100)
+
+        column = selector.append_column(store, renderer, text=1)
+        column.set_property("text-column", 1)
         lang_button.set_selector(selector)
 
-        if self.state.tlate.get(token):
-            index = languages.index(self.state.tlate[token])
-            if token == "@": index += 1
-            lang_button.set_active(index)
+        #if self.state.tlate.get(token):
+            #index = glang_tlate.index(self.state.tlate[token])
+            #print index, token
+            #if token == "@": index += 1
+            #selector.set_active(index, True)
+
+        lang_button.set_label(label)
         lang_button.connect("value-changed", self.tlate_selected, token)
         lang_button.show_all()
         return lang_button
@@ -252,15 +274,20 @@ class BaasGui(object):
         ''' build input fields for delicious service '''
 
         textentry.set_wrap_mode(gtk.WRAP_CHAR)
+        textentry.set_size_request(200, 50)
+
+        button.set_size_request(200, 50)
 
         in_button = self.get_tlate_button('from','@')
+        in_button.set_size_request(100, 50)
         dest_button = self.get_tlate_button('to','#')
+        dest_button.set_size_request(100, 50)
 
-        input_table = gtk.Table(2, 8, True)
-        input_table.attach(textentry, 0, 6, 0, 2)
-        input_table.attach(button, 6, 8, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL,0,5)
-        input_table.attach(in_button, 6, 7, 0, 1, gtk.FILL|gtk.EXPAND, gtk.FILL,0,5)
-        input_table.attach(dest_button, 7, 8, 0, 1, gtk.FILL|gtk.EXPAND, gtk.FILL,0,5)
+        input_table = gtk.Table(2, 20, False)
+        input_table.attach(textentry, 0, 12, 0, 2)
+        input_table.attach(button, 13, 20, 1, 2, gtk.FILL, gtk.FILL)#,0,5)
+        input_table.attach(in_button, 13, 16, 0, 1, gtk.FILL|gtk.EXPAND, gtk.FILL)#,0,5)
+        input_table.attach(dest_button, 17, 20, 0, 1, gtk.FILL|gtk.EXPAND, gtk.FILL)#,0,5)
 
         return input_table
 
@@ -280,14 +307,14 @@ class BaasGui(object):
         elif self.input_command == "tlate":
             term = self.input_buffer
             for token in [t for t in ['@','#'] if self.state.tlate.get(t)]:
-                #if self.state.tlate.get(token):
-                term = "%s %s%s" % (term, token, self.state.tlate.get(token))
+                term = "%s %s%s" % (term, token, self.state.tlate.get(token)[0])
             
-        elif self.state.langs.get(self.input_command):
-            term = self.input_buffer + ' #'+self.state.langs[self.input_command]
+        elif self.state.langs.get(self.input_command):            
+            term = self.input_buffer + ' #'+self.state.langs[self.input_command][0]
         else:
             term = self.input_buffer
         print "term %s" % term
+        print self.state.langs
         return term
 
 
@@ -301,8 +328,13 @@ class BaasGui(object):
 
         self.result_data = None
         commando_func = pluginHnd.commands.get(self.input_command)
+        
+        if self.input_buffer == '':
+            self.waiting_stop()          
+            return None            
+
         if commando_func:                        
-            term = self.prepare_term()        
+            term = self.prepare_term()              
             result_msg = ''
             try:
                 result_msg = commando_func(term)
@@ -340,8 +372,9 @@ class BaasGui(object):
 
         if self.input_command == 'tlate':
             text = htmlentities_decode(data.get('text'))
-            lang = data.get('lang')
-            from_lang = data.get('detected_lang')
+            print data
+            lang = self.tlate_get_name(data.get('lang'))
+            from_lang = self.tlate_get_name(data.get('detected_lang'))
             markup = "<big>%s</big>\n\n<small>(%s => %s)</small>" % (text, from_lang, lang)
         elif self.input_command == 'weather':
             i = data.get('info')
@@ -407,6 +440,12 @@ class BaasGui(object):
         column = selector.append_column(self.store, renderer, markup=1)          
         column.set_property("text-column", 1)
         return selector        
+
+    def tlate_get_name(self, needle):
+        for (short,name) in glang_tlate:
+            if needle == short:
+                return name
+        return needle
         
     def open_link(self, link):
         osso_c = osso.Context("osso_baas_receiver", "0.0.1", False)
@@ -432,5 +471,5 @@ def main():
     gtk.main()
 
 if __name__ == "__main__":
-    hello = BaasGui()
+    ziggy = BaasGui()
     main()
