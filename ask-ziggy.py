@@ -30,7 +30,7 @@ pluginHnd.load_map()
 pluginHnd.load_help()
 
 wording = {
-    'tlate':'Translate',
+    'tlate':'Translation',
     'weather':'Weather Forecast',
     'news':'Yahoo News Search',
     'web':'Yahoo Web Search',
@@ -38,7 +38,7 @@ wording = {
     'gweb':'Google Web Search',
     'deli':'Bookmarks on delicious.com', 
     'metacritic':'Reviews on metacritic.com',
-    'imdb':'Movies on IMDb',
+    'imdb':'Movies on IMDb.com',
     'wikipedia':'Wikipedia',
     }     
 
@@ -199,6 +199,7 @@ class BaasGui(object):
         
         if self.state.langs.get(self.input_command):
             lang_button.set_active(gnews_editions.index(self.state.langs[self.input_command]))
+            lang_button.set_label(self.state.langs[self.input_command][1])
         lang_button.connect("value-changed", self.edition_selected,self.input_command)
 
         lang_button.show_all()
