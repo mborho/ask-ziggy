@@ -37,6 +37,9 @@ wording = {
     'gnews':'Google News Search',
     'gweb':'Google Web Search',
     'deli':'Bookmarks on delicious.com', 
+    'metacritic':'Reviews on metacritic.com',
+    'imdb':'Movies on IMDb',
+    'wikipedia':'Wikipedia',
     }     
 
 class AppState(object):
@@ -119,6 +122,8 @@ class BaasGui(object):
         
         if self.input_command == "deli":
             input_box = self.input_deli(textentry, button)
+        elif self.input_command == "metacritic":
+            input_box = self.input_metacritic(textentry, button)
         elif self.input_command == "tlate":
             input_box = self.input_translate(textentry, button)        
         else:
@@ -137,27 +142,49 @@ class BaasGui(object):
         """ builds button for language selection """
         lang_button = hildon.PickerButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_AUTO_HEIGHT, 
             hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
-        lang_button.set_label("language")
-        selector = hildon.TouchSelector(text=True)  
+
+        selector = hildon.TouchSelector()
+        selector.set_column_selection_mode(hildon.TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE)  
         
+        store = gtk.ListStore(str, str);    
         if self.input_command in ['gweb']: 
             for (short, name) in glanguages:
-                selector.append_text(name)
+                store.append([short,name])
         elif self.input_command in ['weather']:
             for (short, name) in languages:
-                selector.append_text(short)
+                store.append([short,name])
+        elif self.input_command in ['wikipedia']:
+            for (short, name) in wikipedia_languages:
+                store.append([short,name])
+        elif self.input_command in ['imdb']:
+            for (short, name) in imdb_languages:
+                store.append([short,name])
         else:
             for (short, name) in languages:
-                selector.append_text(name)
+                store.append([short,name])
+
+        renderer = gtk.CellRendererText()
+        renderer.set_fixed_size(-1, 100)
+        
+        column = selector.append_column(store, renderer, text=1)
+        column.set_property("text-column", 1)
+        renderer.props.xalign = 0.5
 
         lang_button.set_selector(selector)
 
         if self.state.langs.get(self.input_command):
             if self.input_command in ['gweb']: langs = glanguages
+            elif self.input_command in ['wikipedia']: langs = wikipedia_languages
+            elif self.input_command in ['imdb']: langs = imdb_languages
             else: langs = languages
             lang_button.set_active(langs.index(self.state.langs[self.input_command]))
+            lang_button.set_label(self.state.langs[self.input_command][1])
+        else:
+            lang_button.set_label('language')
         lang_button.connect("value-changed", self.lang_selected,self.input_command)
+        lang_button.set_border_width(0)        
         lang_button.show_all()
+        
         return lang_button
 
     def get_edition_button(self):
@@ -169,16 +196,19 @@ class BaasGui(object):
         for (short, name) in gnews_editions: 
             selector.append_text(name)
         lang_button.set_selector(selector)
-
+        
         if self.state.langs.get(self.input_command):
             lang_button.set_active(gnews_editions.index(self.state.langs[self.input_command]))
         lang_button.connect("value-changed", self.edition_selected,self.input_command)
+
         lang_button.show_all()
         return lang_button
 
     def lang_selected(self, selector, user_data):
         ''' handles lang selection '''
         if self.input_command in ['gweb']: langs = glanguages
+        elif self.input_command in ['wikipedia']: langs = wikipedia_languages
+        elif self.input_command in ['imdb']: langs = imdb_languages
         else: langs = languages
         self.state.langs[self.input_command] = langs[selector.get_active()]
 
@@ -201,6 +231,18 @@ class BaasGui(object):
         box = gtk.HBox(False)
         box.pack_start(textentry, True, True, 0)
         box.pack_start(lang_button, False, True, 0)
+        box.pack_start(button, False, True, 0)
+        return box
+
+    def input_metacritic(self, textentry, button):
+        ''' build input fields for metacritics '''
+
+        textentry.set_size_request(350, 50)         
+        button.set_size_request(200, 50)     
+        button.set_border_width(2)
+
+        box = gtk.HBox(False)
+        box.pack_start(textentry, True, True, 0)
         box.pack_start(button, False, True, 0)
         return box
 
@@ -232,7 +274,6 @@ class BaasGui(object):
     def tlate_selected(self, selector, token):
         ''' handles gnews edition selection '''
         index = selector.get_active()
-        print index
         if token == "@": 
             if index == 0: self.state.tlate[token] = None
             else: self.state.tlate[token] = glang_tlate[index-1]
@@ -246,7 +287,7 @@ class BaasGui(object):
 
         selector = hildon.TouchSelector()
         selector.set_column_selection_mode(hildon.TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE)
-
+        
         store = gtk.ListStore(str, str);
         if token == "@":
             store.append(['','auto'])
@@ -254,9 +295,11 @@ class BaasGui(object):
             store.append([short,name])
         renderer = gtk.CellRendererText()
         renderer.set_fixed_size(-1, 100)
-
+        
         column = selector.append_column(store, renderer, text=1)
         column.set_property("text-column", 1)
+        renderer.props.xalign = 0.5
+        
         lang_button.set_selector(selector)
 
         #if self.state.tlate.get(token):
