@@ -102,32 +102,36 @@ class BaasGui(object):
         self.service_win.set_title(wording.get(service_name))            
 
         # text input
-        textentry = hildon.TextView()
+        self.textentry = hildon.TextView()
 
         # fill text entry with last search
         last_input = self.state.buffers.get(self.input_command,'')
         self.input_buffer = last_input
         old_buffer = gtk.TextBuffer()
         old_buffer.set_text(last_input)
-        textentry.set_buffer(old_buffer)
+        self.textentry.set_buffer(old_buffer)
 
-        buffer = textentry.get_buffer()
+        buffer = self.textentry.get_buffer()
         buffer.connect("changed", self.input_changed)  
 
         # go button
-        button = hildon.Button(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_AUTO_HEIGHT, 
+        self.button = hildon.Button(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT, 
             hildon.BUTTON_ARRANGEMENT_HORIZONTAL, "go")
-        button.connect("clicked", self.ask_buddy)
-        button.connect("pressed", self.waiting_start)
+        self.button.connect("clicked", self.ask_buddy)
+        self.button.connect("pressed", self.waiting_start)
         
+        if self.input_command != 'tlate':
+            self.textentry.set_events(gtk.gdk.KEY_PRESS_MASK)
+            self.textentry.connect("key_press_event", self.event_enter_key)
+
         if self.input_command == "deli":
-            input_box = self.input_deli(textentry, button)
+            input_box = self.input_deli(self.textentry, self.button)
         elif self.input_command == "metacritic":
-            input_box = self.input_metacritic(textentry, button)
+            input_box = self.input_metacritic(self.textentry, self.button)
         elif self.input_command == "tlate":
-            input_box = self.input_translate(textentry, button)        
+            input_box = self.input_translate(self.textentry, self.button)        
         else:
-            input_box = self.input_websearch(textentry, button)
+            input_box = self.input_websearch(self.textentry, self.button)
 
         # the results
         self.result_area = gtk.VBox(False, 5)                      
@@ -140,7 +144,7 @@ class BaasGui(object):
 
     def get_lang_button(self):
         """ builds button for language selection """
-        lang_button = hildon.PickerButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_AUTO_HEIGHT, 
+        lang_button = hildon.PickerButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT, 
             hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
 
         selector = hildon.TouchSelector()
@@ -189,7 +193,7 @@ class BaasGui(object):
 
     def get_edition_button(self):
         """ builds button for google news language selection """
-        lang_button = hildon.PickerButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_AUTO_HEIGHT, 
+        lang_button = hildon.PickerButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT, 
             hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
         lang_button.set_label("edition")
         selector = hildon.TouchSelector(text=True)        
@@ -216,10 +220,16 @@ class BaasGui(object):
     def edition_selected(self, selector, user_data):
         ''' handles gnews edition selection '''
         self.state.langs[self.input_command] = gnews_editions[selector.get_active()]
+    
+    def event_enter_key(self, widget, event):
+        ''' handles enter key ''' 
+        if event.hardware_keycode in [36,104]:
+            print "bla"
+            self.button.emit('clicked')
+            self.button.emit('pressed')            
 
     def input_websearch(self, textentry, button):
         ''' build input fields for delicious service '''
-
         if self.input_command == "gnews":lang_button = self.get_edition_button()
         else: lang_button = self.get_lang_button()
 
@@ -234,6 +244,7 @@ class BaasGui(object):
         box.pack_start(lang_button, False, True, 0)
         box.pack_start(button, False, True, 0)
         return box
+
 
     def input_metacritic(self, textentry, button):
         ''' build input fields for metacritics '''
@@ -253,7 +264,7 @@ class BaasGui(object):
 
     def input_deli(self, textentry, button):
         ''' build input fields for delicious service '''
-        pop_button = hildon.CheckButton(gtk.HILDON_SIZE_AUTO)
+        pop_button = hildon.CheckButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT)
         pop_button.set_label("most popular")
         pop_button.connect("toggled", self.input_deli_pop)  
         pop_button.set_active(self.state.deli_pop)
@@ -283,7 +294,7 @@ class BaasGui(object):
 
     def get_tlate_button(self, label, token):
         """ builds button for language selection """
-        lang_button = hildon.PickerButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_AUTO_HEIGHT, 
+        lang_button = hildon.PickerButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT, 
             hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
 
         selector = hildon.TouchSelector()
