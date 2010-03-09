@@ -50,6 +50,11 @@ class AppState(object):
             self.langs = {}
             self.tlate = {}
 
+class EntryBorder(gtk.Border):
+    
+    def __init__(self, left=0, right=0, top=0, bottom=0):
+        pass
+
 class BaasGui(object):
 
     def __init__(self):
@@ -101,37 +106,37 @@ class BaasGui(object):
         self.service_win = hildon.StackableWindow()
         self.service_win.set_title(wording.get(service_name))            
 
-        # text input
-        self.textentry = hildon.TextView()
-
         # fill text entry with last search
         last_input = self.state.buffers.get(self.input_command,'')
-        self.input_buffer = last_input
-        old_buffer = gtk.TextBuffer()
-        old_buffer.set_text(last_input)
-        self.textentry.set_buffer(old_buffer)
 
-        buffer = self.textentry.get_buffer()
-        buffer.connect("changed", self.input_changed)  
+        # single entry line
+        self.entry = hildon.Entry(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT)
+        self.entry.set_text(last_input)
 
         # go button
-        self.button = hildon.Button(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT, 
+        button = hildon.Button(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT, 
             hildon.BUTTON_ARRANGEMENT_HORIZONTAL, "go")
-        self.button.connect("clicked", self.ask_buddy)
-        self.button.connect("pressed", self.waiting_start)
+        button.connect("clicked", self.ask_buddy)
+        button.connect("pressed", self.waiting_start)
         
-        if self.input_command != 'tlate':
-            self.textentry.set_events(gtk.gdk.KEY_PRESS_MASK)
-            self.textentry.connect("key_press_event", self.event_enter_key)
-
         if self.input_command == "deli":
-            input_box = self.input_deli(self.textentry, self.button)
+            input_box = self.input_deli(self.entry, button)
         elif self.input_command == "metacritic":
-            input_box = self.input_metacritic(self.textentry, self.button)
+            input_box = self.input_metacritic(self.entry, button)
         elif self.input_command == "tlate":
-            input_box = self.input_translate(self.textentry, self.button)        
+            # text input
+            self.textentry = hildon.TextView()        
+            self.input_buffer = last_input
+            old_buffer = gtk.TextBuffer()
+            old_buffer.set_text(last_input)
+            self.textentry.set_buffer(old_buffer)
+
+            buffer = self.textentry.get_buffer()
+            buffer.connect("changed", self.input_changed)  
+
+            input_box = self.input_translate(self.textentry, button)        
         else:
-            input_box = self.input_websearch(self.textentry, self.button)
+            input_box = self.input_websearch(self.entry, button)
 
         # the results
         self.result_area = gtk.VBox(False, 5)                      
@@ -220,42 +225,48 @@ class BaasGui(object):
     def edition_selected(self, selector, user_data):
         ''' handles gnews edition selection '''
         self.state.langs[self.input_command] = gnews_editions[selector.get_active()]
-    
-    def event_enter_key(self, widget, event):
-        ''' handles enter key ''' 
-        if event.hardware_keycode in [36,104]:
-            print "bla"
-            self.button.emit('clicked')
-            self.button.emit('pressed')            
 
     def input_websearch(self, textentry, button):
         ''' build input fields for delicious service '''
+
         if self.input_command == "gnews":lang_button = self.get_edition_button()
         else: lang_button = self.get_lang_button()
 
         lang_button.set_size_request(210, 50)
-        textentry.set_size_request(350, 50)         
-        button.set_size_request(120, 50)     
-        button.set_border_width(2)
-        lang_button.set_border_width(2)
+        textentry.set_size_request(350, 70)  
+        button.set_size_request(100, 50)     
+        
+        box2 = gtk.HBox(False)
+        box2.pack_start(lang_button, True, True, 0)
+        box2.pack_start(button, False, True, 0)
+        box2.set_border_width(12)
+        box2.set_size_request(250, 50)
 
+        table = gtk.Table(1, 20, False)
+        table.attach(textentry, 0, 12, 0 , 1)
+        table.attach(box2, 13, 20, 0 , 1)
+        
         box = gtk.HBox(False)
-        box.pack_start(textentry, True, True, 0)
-        box.pack_start(lang_button, False, True, 0)
-        box.pack_start(button, False, True, 0)
+        box.pack_start(table, True, True, 0)
         return box
-
 
     def input_metacritic(self, textentry, button):
         ''' build input fields for metacritics '''
+        
+        textentry.set_size_request(350, 70)  
+        button.set_size_request(280, 70)     
+        
+        box2 = gtk.HBox(False)
+        box2.pack_start(button, True, True, 0)
+        box2.set_border_width(12)
+        box2.set_size_request(280, 50)
 
-        textentry.set_size_request(350, 50)         
-        button.set_size_request(200, 50)     
-        button.set_border_width(2)
-
+        table = gtk.Table(1, 20, False)
+        table.attach(textentry, 0, 18, 0 , 1)
+        table.attach(box2, 19, 20, 0 , 1)
+        
         box = gtk.HBox(False)
-        box.pack_start(textentry, True, True, 0)
-        box.pack_start(button, False, True, 0)
+        box.pack_start(table, True, True, 0)
         return box
 
     def input_deli_pop(self, button):
@@ -269,18 +280,22 @@ class BaasGui(object):
         pop_button.connect("toggled", self.input_deli_pop)  
         pop_button.set_active(self.state.deli_pop)
 
-        button.set_border_width(2)
-        pop_button.set_border_width(2)
-
-        textentry.set_size_request(350, 50)
-        pop_button.set_size_request(220, 50)
-        button.set_size_request(150, 50)
-
-        box = gtk.HBox(False)
-        box.pack_start(textentry, True, True, 0)
-        box.pack_start(pop_button, False, True, 0)
-        box.pack_start(button, False, True, 0)
+        textentry.set_size_request(350, 70)  
+        pop_button.set_size_request(200, 50)
+        button.set_size_request(100, 50)     
         
+        box2 = gtk.HBox(False)
+        box2.pack_start(pop_button, True, True, 0)
+        box2.pack_start(button, False, True, 0)
+        box2.set_border_width(12)
+        box2.set_size_request(250, 50)
+
+        table = gtk.Table(1, 20, False)
+        table.attach(textentry, 0, 10, 0 , 1)
+        table.attach(box2, 11, 20, 0 , 1)
+        
+        box = gtk.HBox(False)
+        box.pack_start(table, True, True, 0)
         return box
 
     def tlate_selected(self, selector, token):
@@ -353,7 +368,6 @@ class BaasGui(object):
        text = buffer.get_text(start, end, False)
 
        self.input_buffer = text      
-       self.state.buffers[self.input_command] = self.input_buffer
 
     def prepare_term(self):
         ''' prepares statement for ape request '''
@@ -369,7 +383,6 @@ class BaasGui(object):
         else:
             term = self.input_buffer
         print "term %s" % term
-        print self.state.langs
         return term
 
 
@@ -383,10 +396,15 @@ class BaasGui(object):
 
         self.result_data = None
         commando_func = pluginHnd.commands.get(self.input_command)
+
+        if self.input_command != 'tlate':
+            self.input_buffer = self.entry.get_text()
         
         if self.input_buffer == '':
             self.waiting_stop()          
             return None            
+
+        self.state.buffers[self.input_command] = self.input_buffer
 
         if commando_func:                        
             term = self.prepare_term()              
@@ -437,12 +455,12 @@ class BaasGui(object):
             c = data.get('current')
             if c.get('condition'): 
                 markup += '%s\n ' % c.get('condition')
-            markup += '%s°C/%s°F\n' % (c.get('temp_c'), c.get('temp_f'))
+            markup += '%sÂ°C/%sÂ°F\n' % (c.get('temp_c'), c.get('temp_f'))
             markup += '%s\n%s\n\n' % (c.get('humidity'), c.get('wind_condition'))
             f = data.get('forecast')
             for d in f:
                 markup += '%s: ' % (d['day_of_week'])
-                markup += '%s (%s°/%s°)\n' % (d['condition'], d['low'], d['high'])         
+                markup += '%s (%sÂ°/%sÂ°)\n' % (d['condition'], d['low'], d['high'])         
             markup = '<span size="x-large">%s</span>' % markup.decode('utf-8')
         else:
             markup = '<span size="x-large">%s</span>' % str(self.result_data)
