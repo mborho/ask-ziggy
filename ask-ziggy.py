@@ -42,6 +42,15 @@ wording = {
     'wikipedia':'Wikipedia',
     }     
 
+
+about_txt = """
+Ask Ziggy - Search for news, weather, translations, reviews,\t\t
+ movies, wikipedia entries and more...\n
+<small>&#169; 2010 Martin Borho &lt;martin@borho.net&gt;\t\t\t\n
+License: GNU General Public License (GPL) Version 3
+Source: <span color="orange">http://github.com/mborho/ask-ziggy</span></small>
+"""
+
 class AppState(object):
 
         def __init__(self):
@@ -49,11 +58,6 @@ class AppState(object):
             self.buffers = {}
             self.langs = {}
             self.tlate = {}
-
-class EntryBorder(gtk.Border):
-    
-    def __init__(self, left=0, right=0, top=0, bottom=0):
-        pass
 
 class BaasGui(object):
 
@@ -64,14 +68,17 @@ class BaasGui(object):
         gtk.set_application_name("Ask Ziggy")
         
         # Create a new programm
-        program = hildon.Program.get_instance()
-
+        program = hildon.Program.get_instance()        
+        
         # Create a new window
         self.window = hildon.StackableWindow()
         self.window.set_default_size(400,200)
         self.window.set_title("Ask Ziggy")
         self.window.connect("delete_event", self.delete_event)
         self.window.set_border_width(10)
+        
+        menu = self.create_menu()
+        self.window.set_app_menu(menu)        
         
         self.box = gtk.HBox(False, 5)
         self.window.add(self.box)
@@ -97,6 +104,26 @@ class BaasGui(object):
         self.box.show()
         self.window.show()             
         
+    def create_menu(self):
+        menu = hildon.AppMenu()
+        about = hildon.GtkButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT)
+        about.set_label('About')
+        about.connect('clicked', self.menu_dialog,about_txt)
+        
+        menu.append(about)
+        menu.show_all()
+        return menu
+        
+    def menu_dialog(self, button, text):
+        
+        label = gtk.Label() 
+        label.set_markup(text)
+        dialog = gtk.Dialog()
+        dialog.set_title(button.get_label())
+        dialog.set_transient_for(self.window)
+        dialog.action_area.pack_start(label, True, True, 0)
+        dialog.show_all()
+                    
     def show_service_window(self, widget, service_name):
 
         self.input_command = service_name
@@ -232,19 +259,20 @@ class BaasGui(object):
         if self.input_command == "gnews":lang_button = self.get_edition_button()
         else: lang_button = self.get_lang_button()
 
-        lang_button.set_size_request(210, 50)
+        lang_button.set_size_request(210, 40)
         textentry.set_size_request(350, 70)  
-        button.set_size_request(100, 50)     
+        button.set_size_request(130, 40)     
+        button.set_border_width(1)
+        lang_button.set_border_width(1)
         
         box2 = gtk.HBox(False)
         box2.pack_start(lang_button, True, True, 0)
         box2.pack_start(button, False, True, 0)
-        box2.set_border_width(12)
         box2.set_size_request(250, 50)
 
         table = gtk.Table(1, 20, False)
-        table.attach(textentry, 0, 12, 0 , 1)
-        table.attach(box2, 13, 20, 0 , 1)
+        table.attach(textentry, 0, 12, 0 , 1, xpadding=3)
+        table.attach(box2, 13, 20, 0 , 1, ypadding=10)
         
         box = gtk.HBox(False)
         box.pack_start(table, True, True, 0)
@@ -254,16 +282,16 @@ class BaasGui(object):
         ''' build input fields for metacritics '''
         
         textentry.set_size_request(350, 70)  
-        button.set_size_request(280, 70)     
-        
+        button.set_size_request(180, 70)     
+        button.set_border_width(1)
+              
         box2 = gtk.HBox(False)
         box2.pack_start(button, True, True, 0)
-        box2.set_border_width(12)
         box2.set_size_request(280, 50)
 
         table = gtk.Table(1, 20, False)
-        table.attach(textentry, 0, 18, 0 , 1)
-        table.attach(box2, 19, 20, 0 , 1)
+        table.attach(textentry, 0, 18, 0 , 1, xpadding=3)
+        table.attach(box2, 19, 20, 0 , 1, ypadding=12)
         
         box = gtk.HBox(False)
         box.pack_start(table, True, True, 0)
@@ -282,17 +310,18 @@ class BaasGui(object):
 
         textentry.set_size_request(350, 70)  
         pop_button.set_size_request(200, 50)
-        button.set_size_request(100, 50)     
+        button.set_size_request(130, 50)     
+        button.set_border_width(1)
+        pop_button.set_border_width(1)
         
         box2 = gtk.HBox(False)
         box2.pack_start(pop_button, True, True, 0)
         box2.pack_start(button, False, True, 0)
-        box2.set_border_width(12)
         box2.set_size_request(250, 50)
 
         table = gtk.Table(1, 20, False)
-        table.attach(textentry, 0, 10, 0 , 1)
-        table.attach(box2, 11, 20, 0 , 1)
+        table.attach(textentry, 0, 10, 0 , 1,xpadding=3)
+        table.attach(box2, 11, 20, 0 , 1,ypadding=12)
         
         box = gtk.HBox(False)
         box.pack_start(table, True, True, 0)
@@ -427,7 +456,7 @@ class BaasGui(object):
         
         if hasattr(self, 'result_output'):   
             self.result_output.destroy()
-        if self.input_command not in ['tlate','help','weather']:
+        if self.input_command not in ['tlate','weather']:
             self.result_output = self.create_result_selector(self.result_data)       
         else:            
             result_markup = self.get_result_markup()            
@@ -445,7 +474,6 @@ class BaasGui(object):
 
         if self.input_command == 'tlate':
             text = htmlentities_decode(data.get('text'))
-            print data
             lang = self.tlate_get_name(data.get('lang'))
             from_lang = self.tlate_get_name(data.get('detected_lang'))
             markup = "<big>%s</big>\n\n<small>(%s => %s)</small>" % (text, from_lang, lang)
@@ -455,12 +483,12 @@ class BaasGui(object):
             c = data.get('current')
             if c.get('condition'): 
                 markup += '%s\n ' % c.get('condition')
-            markup += '%sÂ°C/%sÂ°F\n' % (c.get('temp_c'), c.get('temp_f'))
+            markup += '%s°C/%s°F\n' % (c.get('temp_c'), c.get('temp_f'))
             markup += '%s\n%s\n\n' % (c.get('humidity'), c.get('wind_condition'))
             f = data.get('forecast')
             for d in f:
                 markup += '%s: ' % (d['day_of_week'])
-                markup += '%s (%sÂ°/%sÂ°)\n' % (d['condition'], d['low'], d['high'])         
+                markup += '%s (%s°/%s°)\n' % (d['condition'], d['low'], d['high'])         
             markup = '<span size="x-large">%s</span>' % markup.decode('utf-8')
         else:
             markup = '<span size="x-large">%s</span>' % str(self.result_data)
@@ -468,7 +496,7 @@ class BaasGui(object):
 
     def create_result_text(self, result_markup):
         """ display result text """
-        self.result_output = hildon.PannableArea()
+        self.result_output = hildon.PannableArea()        
         if hasattr(self, 'result_text'):   
             self.result_text.destroy()
         self.result_text = gtk.Label()
