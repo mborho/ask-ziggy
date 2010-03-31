@@ -11,10 +11,14 @@
 ##
 # Copyright 2010 Martin Borho <martin@borho.net>
 import sys
+import os
 import gtk
 import osso
+import dbus
 import hildon
 import socket
+import urllib
+import simplejson
 from languages import *
 from baas.core.plugins import PluginLoader
 from baas.core.helpers import strip_tags, htmlentities_decode, xmlify
@@ -36,11 +40,11 @@ wording = {
     'web':'Yahoo Web Search',
     'gnews':'Google News Search',
     'gweb':'Google Web Search',
-    'deli':'Bookmarks on delicious.com', 
+    'deli':'Bookmarks on delicious.com',
     'metacritic':'Reviews on metacritic.com',
     'imdb':'Movies on IMDb.com',
     'wikipedia':'Wikipedia',
-    }     
+    }
 
 
 about_txt = """
@@ -58,80 +62,109 @@ class AppState(object):
             self.buffers = {}
             self.langs = {}
             self.tlate = {}
+            self.history = {}
+            self.config_file = os.path.expanduser("~")+"/.ask-ziggy"
+            self.load()
+    
+        def load(self):
+            try:
+                f = open(self.config_file,'a+')
+                json = f.read()
+                f.close()
+                data = simplejson.loads(json)
+                self.history = data.get('history',{})
+                print self.history
+            except:                
+                print "no file fund"
+            
+        def save(self):
+            state = {'history':self.history}
+            f = open(self.config_file,'w')
+            simplejson.dump(state, f)
+            f.close()
+            
 
 class BaasGui(object):
 
     def __init__(self):
+        self.check_connection()
         self.state = AppState()
         self.input_command = None
         self.input_buffer = None
+        self.input_lang = None
+        self.history_button = None
+        self.lang_button = None
         gtk.set_application_name("Ask Ziggy")
-        
+
         # Create a new programm
-        program = hildon.Program.get_instance()        
-        
+        program = hildon.Program.get_instance()
+
         # Create a new window
         self.window = hildon.StackableWindow()
         self.window.set_default_size(400,200)
         self.window.set_title("Ask Ziggy")
         self.window.connect("delete_event", self.delete_event)
         self.window.set_border_width(10)
-        
-        menu = self.create_menu()
-        self.window.set_app_menu(menu)        
-        
+
+        menu = self.create_main_menu()
+        self.window.set_app_menu(menu)
+
         self.box = gtk.HBox(False, 5)
         self.window.add(self.box)
-        
+
         panned_window = hildon.PannableArea()
         panned_window.set_border_width(10)
-        
+
         self.box.pack_start(panned_window, True, True, 0)
         panned_window.show()
 
         services_box = gtk.VBox(False, 15)
         panned_window.add_with_viewport(services_box)
-        
+
         service_labels = sorted(wording.items(), key=lambda(k,v):(v,k))
-        for (p, button_label) in service_labels:  
-            button = hildon.Button(gtk.HILDON_SIZE_THUMB_HEIGHT, 
+        for (p, button_label) in service_labels:
+            button = hildon.Button(gtk.HILDON_SIZE_THUMB_HEIGHT,
                 hildon.BUTTON_ARRANGEMENT_VERTICAL, button_label)
             button.connect("clicked", self.show_service_window, p)
             services_box.pack_start(button, True, True, 0)
-            button.show()        
-        
+            button.show()
+
         services_box.show()
         self.box.show()
-        self.window.show()             
-        
-    def create_menu(self):
+        self.window.show()
+
+    def create_main_menu(self):
         menu = hildon.AppMenu()
         about = hildon.GtkButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT)
         about.set_label('About')
         about.connect('clicked', self.menu_dialog,about_txt)
-        
+
         menu.append(about)
         menu.show_all()
         return menu
-        
+
     def menu_dialog(self, button, text):
-        
-        label = gtk.Label() 
+
+        label = gtk.Label()
         label.set_markup(text)
         dialog = gtk.Dialog()
         dialog.set_title(button.get_label())
         dialog.set_transient_for(self.window)
         dialog.action_area.pack_start(label, True, True, 0)
         dialog.show_all()
-                    
+
     def show_service_window(self, widget, service_name):
 
         self.input_command = service_name
         self.input_buffer = ''
         self.output_result = 'result'
-        
+
         self.service_win = hildon.StackableWindow()
-        self.service_win.set_title(wording.get(service_name))            
+        self.service_win.set_title(wording.get(service_name))
+
+        if self.input_command not in ["tlate"]:
+            menu = self.create_service_menu()
+            self.service_win.set_app_menu(menu)
 
         # fill text entry with last search
         last_input = self.state.buffers.get(self.input_command,'')
@@ -141,49 +174,112 @@ class BaasGui(object):
         self.entry.set_text(last_input)
 
         # go button
-        button = hildon.Button(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT, 
+        button = hildon.Button(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT,
             hildon.BUTTON_ARRANGEMENT_HORIZONTAL, "go")
         button.connect("clicked", self.ask_buddy)
         button.connect("pressed", self.waiting_start)
-        
+
         if self.input_command == "deli":
             input_box = self.input_deli(self.entry, button)
         elif self.input_command == "metacritic":
             input_box = self.input_metacritic(self.entry, button)
         elif self.input_command == "tlate":
             # text input
-            self.textentry = hildon.TextView()        
+            self.textentry = hildon.TextView()
             self.input_buffer = last_input
             old_buffer = gtk.TextBuffer()
             old_buffer.set_text(last_input)
             self.textentry.set_buffer(old_buffer)
 
             buffer = self.textentry.get_buffer()
-            buffer.connect("changed", self.input_changed)  
+            buffer.connect("changed", self.input_changed)
 
-            input_box = self.input_translate(self.textentry, button)        
+            input_box = self.input_translate(self.textentry, button)
         else:
             input_box = self.input_websearch(self.entry, button)
 
         # the results
-        self.result_area = gtk.VBox(False, 5)                      
+        self.result_area = gtk.VBox(False, 5)
         self.table = gtk.Table(20, 1, False)
         self.table.attach(input_box, 0, 1, 0 , 1)
         self.table.attach(self.result_area, 0, 1, 1 , 20)
-        
+
         self.service_win.add(self.table)
         self.service_win.show_all()
 
+    def create_service_menu(self):
+        menu = hildon.AppMenu()
+        #h_button = self.get_history_button()
+        h_button = hildon.GtkButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT)
+        h_button.connect('clicked', self.get_history_list)
+        h_button.set_label('History')
+        menu.append(h_button)
+        menu.show_all()
+        return menu
+
+    def get_history_list(self, button):
+        box = gtk.HBox(True, 5)
+        parea = hildon.PannableArea()
+        treeview = hildon.GtkTreeView(gtk.HILDON_UI_MODE_NORMAL)
+        lstore = gtk.ListStore(str, str);
+        history = self.state.history.get(self.input_command,[])
+        for e in history:
+            sel_text = e.get('input','')
+            if e.get('lang'):
+                print e.get('lang')
+                sel_text += " / "+e['lang'][1].lower()
+            lstore.append([e.get('term',''),sel_text])
+        treeview.set_model(lstore)
+        renderer = gtk.CellRendererText()
+        column = gtk.TreeViewColumn('title', renderer, text=1)
+        column.set_property("expand", True)
+        treeview.append_column(column)
+        treeview.connect("row-activated", self.history_picked)
+
+        parea.add(treeview)
+        parea.set_size_request(750, 300)
+        self.history_dialog = gtk.Dialog('History')
+        self.history_dialog.set_title(button.get_label())
+        self.history_dialog.action_area.add(parea)
+        self.history_dialog.show_all()
+
+    def history_picked(self, treeview, selection, column):
+        h_entry = self.state.history[self.input_command][selection[0]]
+        self.entry.set_text(h_entry.get('input',''))        
+
+        h_lang = h_entry.get('lang')
+        if h_lang:
+            self.lang_button.set_label(h_lang[1])
+            self.input_lang = h_lang
+            self.state.langs[self.input_command] = h_lang
+        else: 
+            self.state.langs[self.input_command] = None
+            self.lang_button.set_label('language')
+        self.history_dialog.destroy()
+
+    def menu_history(self, button):
+
+        label = gtk.Label()
+        label.set_markup(self.input_command)
+        history = self.state.history.get(self.input_command)
+        if history:
+            label.set_markup(str(history))
+        dialog = gtk.Dialog()
+        dialog.set_title(button.get_label())
+        dialog.set_transient_for(self.window)
+        dialog.action_area.pack_start(label, True, True, 0)
+        dialog.show_all()
+
     def get_lang_button(self):
         """ builds button for language selection """
-        lang_button = hildon.PickerButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT, 
+        lang_button = hildon.PickerButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT,
             hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
 
         selector = hildon.TouchSelector()
-        selector.set_column_selection_mode(hildon.TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE)  
-        
-        store = gtk.ListStore(str, str);    
-        if self.input_command in ['gweb']: 
+        selector.set_column_selection_mode(hildon.TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE)
+
+        store = gtk.ListStore(str, str);
+        if self.input_command in ['gweb']:
             for (short, name) in glanguages:
                 store.append([short,name])
         elif self.input_command in ['weather']:
@@ -201,7 +297,7 @@ class BaasGui(object):
 
         renderer = gtk.CellRendererText()
         renderer.set_fixed_size(-1, 100)
-        
+
         column = selector.append_column(store, renderer, text=1)
         column.set_property("text-column", 1)
         renderer.props.xalign = 0.5
@@ -218,21 +314,21 @@ class BaasGui(object):
         else:
             lang_button.set_label('language')
         lang_button.connect("value-changed", self.lang_selected,self.input_command)
-        lang_button.set_border_width(0)        
+        lang_button.set_border_width(0)
         lang_button.show_all()
-        
+
         return lang_button
 
     def get_edition_button(self):
         """ builds button for google news language selection """
-        lang_button = hildon.PickerButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT, 
+        lang_button = hildon.PickerButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT,
             hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
         lang_button.set_label("edition")
-        selector = hildon.TouchSelector(text=True)        
-        for (short, name) in gnews_editions: 
+        selector = hildon.TouchSelector(text=True)
+        for (short, name) in gnews_editions:
             selector.append_text(name)
         lang_button.set_selector(selector)
-        
+
         if self.state.langs.get(self.input_command):
             lang_button.set_active(gnews_editions.index(self.state.langs[self.input_command]))
             lang_button.set_label(self.state.langs[self.input_command][1])
@@ -247,44 +343,49 @@ class BaasGui(object):
         elif self.input_command in ['wikipedia']: langs = wikipedia_languages
         elif self.input_command in ['imdb']: langs = imdb_languages
         else: langs = languages
-        self.state.langs[self.input_command] = langs[selector.get_active()]
+        self.input_lang = langs[selector.get_active()]
+        self.state.langs[self.input_command] = self.input_lang
+        
 
     def edition_selected(self, selector, user_data):
         ''' handles gnews edition selection '''
-        self.state.langs[self.input_command] = gnews_editions[selector.get_active()]
+        active = selector.get_active()
+        self.input_lang = gnews_editions[active]
+        self.state.langs[self.input_command] = gnews_editions[active]
+        
 
     def input_websearch(self, textentry, button):
         ''' build input fields for delicious service '''
 
-        if self.input_command == "gnews":lang_button = self.get_edition_button()
-        else: lang_button = self.get_lang_button()
+        if self.input_command == "gnews": self.lang_button = self.get_edition_button()
+        else: self.lang_button = self.get_lang_button()
 
-        lang_button.set_size_request(210, 40)
-        textentry.set_size_request(350, 70)  
-        button.set_size_request(130, 40)     
+        self.lang_button.set_size_request(210, 40)
+        textentry.set_size_request(350, 70)
+        button.set_size_request(130, 40)
         button.set_border_width(1)
-        lang_button.set_border_width(1)
-        
+        self.lang_button.set_border_width(1)
+
         box2 = gtk.HBox(False)
-        box2.pack_start(lang_button, True, True, 0)
+        box2.pack_start(self.lang_button, True, True, 0)
         box2.pack_start(button, False, True, 0)
         box2.set_size_request(250, 50)
 
         table = gtk.Table(1, 20, False)
         table.attach(textentry, 0, 12, 0 , 1, xpadding=3)
         table.attach(box2, 13, 20, 0 , 1, ypadding=10)
-        
+
         box = gtk.HBox(False)
         box.pack_start(table, True, True, 0)
         return box
 
     def input_metacritic(self, textentry, button):
         ''' build input fields for metacritics '''
-        
-        textentry.set_size_request(350, 70)  
-        button.set_size_request(180, 70)     
+
+        textentry.set_size_request(350, 70)
+        button.set_size_request(180, 70)
         button.set_border_width(1)
-              
+
         box2 = gtk.HBox(False)
         box2.pack_start(button, True, True, 0)
         box2.set_size_request(280, 50)
@@ -292,7 +393,7 @@ class BaasGui(object):
         table = gtk.Table(1, 20, False)
         table.attach(textentry, 0, 18, 0 , 1, xpadding=3)
         table.attach(box2, 19, 20, 0 , 1, ypadding=12)
-        
+
         box = gtk.HBox(False)
         box.pack_start(table, True, True, 0)
         return box
@@ -305,15 +406,15 @@ class BaasGui(object):
         ''' build input fields for delicious service '''
         pop_button = hildon.CheckButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT)
         pop_button.set_label("most popular")
-        pop_button.connect("toggled", self.input_deli_pop)  
+        pop_button.connect("toggled", self.input_deli_pop)
         pop_button.set_active(self.state.deli_pop)
 
-        textentry.set_size_request(350, 70)  
+        textentry.set_size_request(350, 70)
         pop_button.set_size_request(200, 50)
-        button.set_size_request(130, 50)     
+        button.set_size_request(130, 50)
         button.set_border_width(1)
         pop_button.set_border_width(1)
-        
+
         box2 = gtk.HBox(False)
         box2.pack_start(pop_button, True, True, 0)
         box2.pack_start(button, False, True, 0)
@@ -322,7 +423,7 @@ class BaasGui(object):
         table = gtk.Table(1, 20, False)
         table.attach(textentry, 0, 10, 0 , 1,xpadding=3)
         table.attach(box2, 11, 20, 0 , 1,ypadding=12)
-        
+
         box = gtk.HBox(False)
         box.pack_start(table, True, True, 0)
         return box
@@ -330,7 +431,7 @@ class BaasGui(object):
     def tlate_selected(self, selector, token):
         ''' handles gnews edition selection '''
         index = selector.get_active()
-        if token == "@": 
+        if token == "@":
             if index == 0: self.state.tlate[token] = None
             else: self.state.tlate[token] = glang_tlate[index-1]
         else:
@@ -338,12 +439,12 @@ class BaasGui(object):
 
     def get_tlate_button(self, label, token):
         """ builds button for language selection """
-        lang_button = hildon.PickerButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT, 
+        lang_button = hildon.PickerButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT,
             hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
 
         selector = hildon.TouchSelector()
         selector.set_column_selection_mode(hildon.TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE)
-        
+
         store = gtk.ListStore(str, str);
         if token == "@":
             store.append(['','auto'])
@@ -351,11 +452,11 @@ class BaasGui(object):
             store.append([short,name])
         renderer = gtk.CellRendererText()
         renderer.set_fixed_size(-1, 100)
-        
+
         column = selector.append_column(store, renderer, text=1)
         column.set_property("text-column", 1)
         renderer.props.xalign = 0.5
-        
+
         lang_button.set_selector(selector)
 
         #if self.state.tlate.get(token):
@@ -396,7 +497,7 @@ class BaasGui(object):
        end = buffer.get_end_iter()
        text = buffer.get_text(start, end, False)
 
-       self.input_buffer = text      
+       self.input_buffer = text
 
     def prepare_term(self):
         ''' prepares statement for ape request '''
@@ -406,8 +507,8 @@ class BaasGui(object):
             term = self.input_buffer
             for token in [t for t in ['@','#'] if self.state.tlate.get(t)]:
                 term = "%s %s%s" % (term, token, self.state.tlate.get(token)[0])
-            
-        elif self.state.langs.get(self.input_command):            
+
+        elif self.state.langs.get(self.input_command):
             term = self.input_buffer + ' #'+self.state.langs[self.input_command][0]
         else:
             term = self.input_buffer
@@ -415,11 +516,32 @@ class BaasGui(object):
         return term
 
 
-    def waiting_start(self, msg):   
+    def waiting_start(self, msg):
         hildon.hildon_gtk_window_set_progress_indicator(self.service_win, 1)
-               
+
     def waiting_stop(self):
         hildon.hildon_gtk_window_set_progress_indicator(self.service_win, 0)
+
+    def update_state(self):
+        self.state.buffers[self.input_command] = self.input_buffer
+        if not self.state.history.get(self.input_command):
+            self.state.history[self.input_command] = []
+        
+        input_lang = self.input_lang if self.input_command not in ['metacritic'] else None
+        hist_entry = {
+            'term':self.term,
+            'lang': input_lang,
+            'input':self.input_buffer,
+        }
+
+        self.state.history[self.input_command].insert(0,hist_entry)
+        self.state.history[self.input_command] = self.state.history[self.input_command][0:10]
+        history = []
+        for i in self.state.history[self.input_command]:
+            if i not in history:
+                history.append(i)
+        self.state.history[self.input_command] = history
+        self.state.save()
 
     def ask_buddy(self, widget):
 
@@ -428,23 +550,22 @@ class BaasGui(object):
 
         if self.input_command != 'tlate':
             self.input_buffer = self.entry.get_text()
-        
+
         if self.input_buffer == '':
-            self.waiting_stop()          
-            return None            
+            self.waiting_stop()
+            return None
 
-        self.state.buffers[self.input_command] = self.input_buffer
-
-        if commando_func:                        
-            term = self.prepare_term()              
+        if commando_func:
+            self.term = self.prepare_term()
+            self.update_state()
             result_msg = ''
             try:
-                result_msg = commando_func(term)
+                result_msg = commando_func(self.term)
             except URLError, e:
-                hildon.hildon_banner_show_information(self.window, "", 
+                hildon.hildon_banner_show_information(self.window, "",
                     "Request failed, timed out.")
             except IOError, e:
-                hildon.hildon_banner_show_information(self.window, "", 
+                hildon.hildon_banner_show_information(self.window, "",
                     "No network, please check your connection.")
             except EnvironmentError, e:
                 hildon.hildon_banner_show_information(self.window, "", str(e))
@@ -453,19 +574,19 @@ class BaasGui(object):
             self.result_data = result_msg
         else:
             self.result_data = [{'title':'Uups, commando not known\n'}]
-        
-        if hasattr(self, 'result_output'):   
+
+        if hasattr(self, 'result_output'):
             self.result_output.destroy()
         if self.input_command not in ['tlate','weather']:
-            self.result_output = self.create_result_selector(self.result_data)       
-        else:            
-            result_markup = self.get_result_markup()            
+            self.result_output = self.create_result_selector(self.result_data)
+        else:
+            result_markup = self.get_result_markup()
             self.create_result_text(result_markup)
-        
-        self.result_area.add(self.result_output) 
-        self.result_output.show()   
-        self.waiting_stop()        
-   
+
+        self.result_area.add(self.result_output)
+        self.result_output.show()
+        self.waiting_stop()
+
     def get_result_markup(self):
         """ returns pango formatted string """
         data = self.result_data
@@ -481,14 +602,14 @@ class BaasGui(object):
             i = data.get('info')
             markup = '%s:\n' % (i.get('city'))#, i.get('current_date_time'))
             c = data.get('current')
-            if c.get('condition'): 
+            if c.get('condition'):
                 markup += '%s\n ' % c.get('condition')
             markup += '%s°C/%s°F\n' % (c.get('temp_c'), c.get('temp_f'))
             markup += '%s\n%s\n\n' % (c.get('humidity'), c.get('wind_condition'))
             f = data.get('forecast')
             for d in f:
                 markup += '%s: ' % (d['day_of_week'])
-                markup += '%s (%s°/%s°)\n' % (d['condition'], d['low'], d['high'])         
+                markup += '%s (%s°/%s°)\n' % (d['condition'], d['low'], d['high'])
             markup = '<span size="x-large">%s</span>' % markup.decode('utf-8')
         else:
             markup = '<span size="x-large">%s</span>' % str(self.result_data)
@@ -496,16 +617,16 @@ class BaasGui(object):
 
     def create_result_text(self, result_markup):
         """ display result text """
-        self.result_output = hildon.PannableArea()        
-        if hasattr(self, 'result_text'):   
+        self.result_output = hildon.PannableArea()
+        if hasattr(self, 'result_text'):
             self.result_text.destroy()
         self.result_text = gtk.Label()
         self.result_text.set_justify(gtk.JUSTIFY_LEFT)
-        self.result_text.set_line_wrap(True)        
+        self.result_text.set_line_wrap(True)
         self.result_text.set_markup(result_markup)
         self.result_output.add_with_viewport(self.result_text)
         self.result_text.show()
-        
+
     def result_selection_changed(self, selector, user_data):
         ''' opens selected search result in browser '''
         active = selector.get_active(0)
@@ -513,9 +634,9 @@ class BaasGui(object):
         if current_selection and type(self.result_data[active]) == dict:
             if self.result_data[active].get('unescapedUrl'):
                 self.open_link(self.result_data[active]['unescapedUrl'])
-            elif self.result_data[active].get('url'): 
+            elif self.result_data[active].get('url'):
                 self.open_link(self.result_data[active]['url'])
-            elif self.result_data[active].get('link'): 
+            elif self.result_data[active].get('link'):
                 self.open_link(self.result_data[active]['link'])
 
     def create_result_selector(self, entries=None):
@@ -525,10 +646,10 @@ class BaasGui(object):
 
         try: self.store.clear()
         except: pass
-        
+
         self.store = gtk.ListStore(int, str);
         if entries and type(entries) == list:
-            for entry in entries:                
+            for entry in entries:
                 title = '<span>%s</span>' % xmlify(htmlentities_decode(entry.get('title','#')))
                 title += '\n<span size="x-small" style="italic">%s</span>' % xmlify(self.get_link(entry))
                 self.store.append([0,title])
@@ -538,16 +659,16 @@ class BaasGui(object):
         renderer.set_fixed_size(-1, 100)
 
         # Add the column to the selector
-        column = selector.append_column(self.store, renderer, markup=1)          
+        column = selector.append_column(self.store, renderer, markup=1)
         column.set_property("text-column", 1)
-        return selector        
+        return selector
 
     def tlate_get_name(self, needle):
         for (short,name) in glang_tlate:
             if needle == short:
                 return name
         return needle
-        
+
     def open_link(self, link):
         osso_c = osso.Context("osso_baas_receiver", "0.0.1", False)
         osso_rpc = osso.Rpc(osso_c)
@@ -557,11 +678,20 @@ class BaasGui(object):
         link = None
         if entry.get('unescapedUrl'):
             link = entry['unescapedUrl']
-        elif entry.get('url'): 
+        elif entry.get('url'):
             link = entry['url']
-        elif entry.get('link'): 
+        elif entry.get('link'):
             link = entry['link']
         return link
+
+    def check_connection(self):
+        try:
+            urllib.urlopen('http://www.google.com')
+        except IOError, e:
+            bus = dbus.SystemBus()
+            call = dbus.Interface(bus.get_object("com.nokia.icd_ui",
+                "/com/nokia/icd_ui"),"com.nokia.icd_ui")
+            call.show_conn_dlg(False)
 
     # another callback
     def delete_event(self, widget, event, data=None):
