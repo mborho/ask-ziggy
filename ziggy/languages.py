@@ -227,3 +227,27 @@ imdb_languages = [
 ('it','Italiano'),
 ('pt','Português'),
 ]
+
+
+class Languages(object):
+
+    def __init__(self):
+        self.imdb = imdb_languages
+        self.wikipedia = wikipedia_languages
+        self.web = self.news = self.weather = languages
+        self.gweb = glanguages
+        self.gnews = gnews_editions
+        self.tlate_from = glang_tlate
+        self.tlate_to = glang_tlate
+
+    def get(self, service, index=None, short=None):
+        lang_list = self.__getattribute__(service)
+        if index > -1:
+            return lang_list[index]
+        elif short:
+            for (shorty,name) in lang_list:
+                if short == shorty:
+                    return (shorty,name)
+        else: 
+            return lang_list
+

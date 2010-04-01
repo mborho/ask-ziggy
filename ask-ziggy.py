@@ -11,18 +11,18 @@
 ##
 # Copyright 2010 Martin Borho <martin@borho.net>
 import sys
-import os
 import gtk
 import osso
 import dbus
 import hildon
 import socket
 import urllib
-import simplejson
-from languages import *
+from urllib2 import URLError
+from ziggy.languages import Languages
+from ziggy.state import AppState
 from baas.core.plugins import PluginLoader
 from baas.core.helpers import strip_tags, htmlentities_decode, xmlify
-from urllib2 import URLError
+
 
 # set timeout to 10 seconds
 timeout = 10
@@ -53,42 +53,14 @@ Ask Ziggy - Search for news, weather, translations, reviews,\t\t
 <small>&#169; 2010 Martin Borho &lt;martin@borho.net&gt;\t\t\t\n
 License: GNU General Public License (GPL) Version 3
 Source: <span color="orange">http://github.com/mborho/ask-ziggy</span></small>
-"""
-
-class AppState(object):
-
-        def __init__(self):
-            self.deli_pop = 0
-            self.buffers = {}
-            self.langs = {}
-            self.tlate = {}
-            self.history = {}
-            self.config_file = os.path.expanduser("~")+"/.ask-ziggy"
-            self.load()
-    
-        def load(self):
-            try:
-                f = open(self.config_file,'a+')
-                json = f.read()
-                f.close()
-                data = simplejson.loads(json)
-                self.history = data.get('history',{})
-                print self.history
-            except:                
-                print "no file fund"
-            
-        def save(self):
-            state = {'history':self.history}
-            f = open(self.config_file,'w')
-            simplejson.dump(state, f)
-            f.close()
-            
+"""          
 
 class BaasGui(object):
 
     def __init__(self):
         self.check_connection()
         self.state = AppState()
+        self.lang = Languages()
         self.input_command = None
         self.input_buffer = None
         self.input_lang = None
@@ -224,11 +196,11 @@ class BaasGui(object):
         lstore = gtk.ListStore(str, str);
         history = self.state.history.get(self.input_command,[])
         for e in history:
-            sel_text = e.get('input','')
-            if e.get('lang'):
-                print e.get('lang')
-                sel_text += " / "+e['lang'][1].lower()
-            lstore.append([e.get('term',''),sel_text])
+            (term, lang) = self.parse_term(e)
+            sel_text = term
+            if lang:
+                sel_text += " / "+self.lang.get(self.input_command, short=lang)[1].lower()
+            lstore.append([str(e),sel_text])
         treeview.set_model(lstore)
         renderer = gtk.CellRendererText()
         column = gtk.TreeViewColumn('title', renderer, text=1)
@@ -245,10 +217,12 @@ class BaasGui(object):
 
     def history_picked(self, treeview, selection, column):
         h_entry = self.state.history[self.input_command][selection[0]]
-        self.entry.set_text(h_entry.get('input',''))        
+        (term, lang) = self.parse_term(h_entry)
+        print term, lang
+        self.entry.set_text(term)        
 
-        h_lang = h_entry.get('lang')
-        if h_lang:
+        if lang:
+            h_lang = self.lang.get(self.input_command, short=lang)
             self.lang_button.set_label(h_lang[1])
             self.input_lang = h_lang
             self.state.langs[self.input_command] = h_lang
@@ -279,21 +253,8 @@ class BaasGui(object):
         selector.set_column_selection_mode(hildon.TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE)
 
         store = gtk.ListStore(str, str);
-        if self.input_command in ['gweb']:
-            for (short, name) in glanguages:
-                store.append([short,name])
-        elif self.input_command in ['weather']:
-            for (short, name) in languages:
-                store.append([short,name])
-        elif self.input_command in ['wikipedia']:
-            for (short, name) in wikipedia_languages:
-                store.append([short,name])
-        elif self.input_command in ['imdb']:
-            for (short, name) in imdb_languages:
-                store.append([short,name])
-        else:
-            for (short, name) in languages:
-                store.append([short,name])
+        for (short, name) in self.lang.get(self.input_command):
+            store.append([short,name])
 
         renderer = gtk.CellRendererText()
         renderer.set_fixed_size(-1, 100)
@@ -305,10 +266,7 @@ class BaasGui(object):
         lang_button.set_selector(selector)
 
         if self.state.langs.get(self.input_command):
-            if self.input_command in ['gweb']: langs = glanguages
-            elif self.input_command in ['wikipedia']: langs = wikipedia_languages
-            elif self.input_command in ['imdb']: langs = imdb_languages
-            else: langs = languages
+            langs = self.lang.get(self.input_command)
             lang_button.set_active(langs.index(self.state.langs[self.input_command]))
             lang_button.set_label(self.state.langs[self.input_command][1])
         else:
@@ -325,12 +283,12 @@ class BaasGui(object):
             hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
         lang_button.set_label("edition")
         selector = hildon.TouchSelector(text=True)
-        for (short, name) in gnews_editions:
+        for (short, name) in self.lang.get('gnews'):
             selector.append_text(name)
         lang_button.set_selector(selector)
 
         if self.state.langs.get(self.input_command):
-            lang_button.set_active(gnews_editions.index(self.state.langs[self.input_command]))
+            lang_button.set_active(self.lang.get('gnews').index(self.state.langs[self.input_command]))
             lang_button.set_label(self.state.langs[self.input_command][1])
         lang_button.connect("value-changed", self.edition_selected,self.input_command)
 
@@ -339,10 +297,7 @@ class BaasGui(object):
 
     def lang_selected(self, selector, user_data):
         ''' handles lang selection '''
-        if self.input_command in ['gweb']: langs = glanguages
-        elif self.input_command in ['wikipedia']: langs = wikipedia_languages
-        elif self.input_command in ['imdb']: langs = imdb_languages
-        else: langs = languages
+        langs = self.lang.get(self.input_command)
         self.input_lang = langs[selector.get_active()]
         self.state.langs[self.input_command] = self.input_lang
         
@@ -350,8 +305,8 @@ class BaasGui(object):
     def edition_selected(self, selector, user_data):
         ''' handles gnews edition selection '''
         active = selector.get_active()
-        self.input_lang = gnews_editions[active]
-        self.state.langs[self.input_command] = gnews_editions[active]
+        self.input_lang = self.lang.get('gnews', index=active)
+        self.state.langs[self.input_command] = self.lang.get('gnews', index=active)
         
 
     def input_websearch(self, textentry, button):
@@ -433,9 +388,10 @@ class BaasGui(object):
         index = selector.get_active()
         if token == "@":
             if index == 0: self.state.tlate[token] = None
-            else: self.state.tlate[token] = glang_tlate[index-1]
+            else: self.state.tlate[token] = self.lang.get('tlate_from', index=index-1)
         else:
-            self.state.tlate[token] = glang_tlate[index]
+            self.state.tlate[token] = self.lang.get('tlate_to', index=index)
+        print self.state.tlate
 
     def get_tlate_button(self, label, token):
         """ builds button for language selection """
@@ -448,6 +404,9 @@ class BaasGui(object):
         store = gtk.ListStore(str, str);
         if token == "@":
             store.append(['','auto'])
+            glang_tlate = self.lang.get('tlate_to')
+        else:
+            glang_tlate = self.lang.get('tlate_from')
         for (short, name) in glang_tlate:
             store.append([short,name])
         renderer = gtk.CellRendererText()
@@ -458,13 +417,6 @@ class BaasGui(object):
         renderer.props.xalign = 0.5
 
         lang_button.set_selector(selector)
-
-        #if self.state.tlate.get(token):
-            #index = glang_tlate.index(self.state.tlate[token])
-            #print index, token
-            #if token == "@": index += 1
-            #selector.set_active(index, True)
-
         lang_button.set_label(label)
         lang_button.connect("value-changed", self.tlate_selected, token)
         lang_button.show_all()
@@ -527,20 +479,10 @@ class BaasGui(object):
         if not self.state.history.get(self.input_command):
             self.state.history[self.input_command] = []
         
-        input_lang = self.input_lang if self.input_command not in ['metacritic'] else None
-        hist_entry = {
-            'term':self.term,
-            'lang': input_lang,
-            'input':self.input_buffer,
-        }
-
-        self.state.history[self.input_command].insert(0,hist_entry)
-        self.state.history[self.input_command] = self.state.history[self.input_command][0:10]
-        history = []
-        for i in self.state.history[self.input_command]:
-            if i not in history:
-                history.append(i)
-        self.state.history[self.input_command] = history
+        if self.term in self.state.history[self.input_command]:
+            self.state.history[self.input_command].remove(self.term)
+        self.state.history[self.input_command].insert(0,self.term)
+        self.state.history[self.input_command] =  self.state.history[self.input_command][0:10]
         self.state.save()
 
     def ask_buddy(self, widget):
@@ -595,8 +537,8 @@ class BaasGui(object):
 
         if self.input_command == 'tlate':
             text = htmlentities_decode(data.get('text'))
-            lang = self.tlate_get_name(data.get('lang'))
-            from_lang = self.tlate_get_name(data.get('detected_lang'))
+            lang = self.lang.get('tlate_to', short=data.get('lang'))[1]
+            from_lang = self.lang.get('tlate_from', short=data.get('detected_lang'))[1]
             markup = "<big>%s</big>\n\n<small>(%s => %s)</small>" % (text, from_lang, lang)
         elif self.input_command == 'weather':
             i = data.get('info')
@@ -663,12 +605,6 @@ class BaasGui(object):
         column.set_property("text-column", 1)
         return selector
 
-    def tlate_get_name(self, needle):
-        for (short,name) in glang_tlate:
-            if needle == short:
-                return name
-        return needle
-
     def open_link(self, link):
         osso_c = osso.Context("osso_baas_receiver", "0.0.1", False)
         osso_rpc = osso.Rpc(osso_c)
@@ -683,6 +619,13 @@ class BaasGui(object):
         elif entry.get('link'):
             link = entry['link']
         return link
+
+    def parse_term(self, term):
+        lang = None
+        if term and term.find('#')+1:
+            term, lang = term.split('#',1)
+            term = term.strip()
+        return (term, lang)
 
     def check_connection(self):
         try:
