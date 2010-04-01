@@ -198,8 +198,10 @@ class BaasGui(object):
         for e in history:
             (term, lang) = self.parse_term(e)
             sel_text = term
-            if lang:
+            if lang and self.input_command != 'deli':
                 sel_text += " / "+self.lang.get(self.input_command, short=lang)[1].lower()
+            elif lang:
+                sel_text += " / popular"
             lstore.append([str(e),sel_text])
         treeview.set_model(lstore)
         renderer = gtk.CellRendererText()
@@ -221,14 +223,20 @@ class BaasGui(object):
         print term, lang
         self.entry.set_text(term)        
 
-        if lang:
-            h_lang = self.lang.get(self.input_command, short=lang)
-            self.lang_button.set_label(h_lang[1])
-            self.input_lang = h_lang
-            self.state.langs[self.input_command] = h_lang
-        else: 
-            self.state.langs[self.input_command] = None
-            self.lang_button.set_label('language')
+        
+        if self.input_command == "deli":
+            if lang:
+                self.state.deli_pop = True
+                self.pop_button.set_active(self.state.deli_pop)
+        else:
+            if lang:
+                h_lang = self.lang.get(self.input_command, short=lang)
+                self.lang_button.set_label(h_lang[1])
+                self.input_lang = h_lang
+                self.state.langs[self.input_command] = h_lang
+            else: 
+                self.state.langs[self.input_command] = None
+                self.lang_button.set_label('language')
         self.history_dialog.destroy()
 
     def menu_history(self, button):
@@ -359,19 +367,19 @@ class BaasGui(object):
 
     def input_deli(self, textentry, button):
         ''' build input fields for delicious service '''
-        pop_button = hildon.CheckButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT)
-        pop_button.set_label("most popular")
-        pop_button.connect("toggled", self.input_deli_pop)
-        pop_button.set_active(self.state.deli_pop)
+        self.pop_button = hildon.CheckButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT)
+        self.pop_button.set_label("most popular")
+        self.pop_button.connect("toggled", self.input_deli_pop)
+        self.pop_button.set_active(self.state.deli_pop)
 
         textentry.set_size_request(350, 70)
-        pop_button.set_size_request(200, 50)
+        self.pop_button.set_size_request(200, 50)
         button.set_size_request(130, 50)
         button.set_border_width(1)
-        pop_button.set_border_width(1)
+        self.pop_button.set_border_width(1)
 
         box2 = gtk.HBox(False)
-        box2.pack_start(pop_button, True, True, 0)
+        box2.pack_start(self.pop_button, True, True, 0)
         box2.pack_start(button, False, True, 0)
         box2.set_size_request(250, 50)
 
