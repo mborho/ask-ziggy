@@ -31,9 +31,8 @@ class AppState(object):
             f.close()
             data = simplejson.loads(json)
             self.history = data.get('history',{})
-            print self.history
         except:                
-            print "no file fund"
+            print "no file found"
         
     def save(self):
         state = {'history':self.history}

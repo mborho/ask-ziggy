@@ -58,7 +58,8 @@ Source: <span color="orange">http://github.com/mborho/ask-ziggy</span></small>
 class BaasGui(object):
 
     def __init__(self):
-        self.check_connection()
+        # auto connect deactivated
+        #self.check_connection() 
         self.state = AppState()
         self.lang = Languages()
         self.input_command = None
@@ -185,9 +186,23 @@ class BaasGui(object):
         h_button = hildon.GtkButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT)
         h_button.connect('clicked', self.get_history_list)
         h_button.set_label('History')
+
+        c_button = hildon.GtkButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT)
+        c_button.connect('clicked', self.clear_history_list)
+        c_button.set_label('Clear history')
+
         menu.append(h_button)
+        menu.append(c_button)
         menu.show_all()
         return menu
+
+
+    def clear_history_list(self, button):
+        try:
+            del self.state.history[self.input_command]
+            self.state.save()
+        except: pass
+        hildon.hildon_banner_show_information(self.window, "", "cleared history for this service")
 
     def get_history_list(self, button):
         box = gtk.HBox(True, 5)
@@ -199,19 +214,19 @@ class BaasGui(object):
             (term, lang) = self.parse_term(e)
             sel_text = term
             if lang and self.input_command != 'deli':
-                sel_text += " / "+self.lang.get(self.input_command, short=lang)[1].lower()
+                sel_text += " <small>/ %s</small>" % self.lang.get(self.input_command, short=lang)[1]
             elif lang:
-                sel_text += " / popular"
+                sel_text += " <small>/ popular</small>"
             lstore.append([str(e),sel_text])
         treeview.set_model(lstore)
         renderer = gtk.CellRendererText()
-        column = gtk.TreeViewColumn('title', renderer, text=1)
+        column = gtk.TreeViewColumn('title', renderer, markup=1)
         column.set_property("expand", True)
         treeview.append_column(column)
         treeview.connect("row-activated", self.history_picked)
 
         parea.add(treeview)
-        parea.set_size_request(750, 300)
+        parea.set_size_request(750, 320)
         self.history_dialog = gtk.Dialog('History')
         self.history_dialog.set_title(button.get_label())
         self.history_dialog.action_area.add(parea)
@@ -220,9 +235,7 @@ class BaasGui(object):
     def history_picked(self, treeview, selection, column):
         h_entry = self.state.history[self.input_command][selection[0]]
         (term, lang) = self.parse_term(h_entry)
-        print term, lang
         self.entry.set_text(term)        
-
         
         if self.input_command == "deli":
             if lang:
@@ -399,7 +412,6 @@ class BaasGui(object):
             else: self.state.tlate[token] = self.lang.get('tlate_from', index=index-1)
         else:
             self.state.tlate[token] = self.lang.get('tlate_to', index=index)
-        print self.state.tlate
 
     def get_tlate_button(self, label, token):
         """ builds button for language selection """
