@@ -519,7 +519,8 @@ class BaasGui(object):
 
         if commando_func:
             self.term = self.prepare_term()
-            self.update_state()
+            if self.term:
+                self.update_state()
             result_msg = ''
             try:
                 result_msg = commando_func(self.term)
