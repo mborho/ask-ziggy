@@ -216,7 +216,7 @@ class BaasGui(object):
             if lang and self.input_command != 'deli':
                 sel_text += " <small>/ %s</small>" % self.lang.get(self.input_command, short=lang)[1]
             elif lang:
-                sel_text += " <small>/ popular</small>"
+                sel_text += " <small>/ most popular</small>"
             lstore.append([str(e),sel_text])
         treeview.set_model(lstore)
         renderer = gtk.CellRendererText()
@@ -485,7 +485,7 @@ class BaasGui(object):
         else:
             term = self.input_buffer
         print "term %s" % term
-        return term
+        return term.strip()
 
 
     def waiting_start(self, msg):
