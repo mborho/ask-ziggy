@@ -17,6 +17,7 @@ import dbus
 import hildon
 import socket
 import urllib
+import gobject
 from urllib2 import URLError
 from ziggy.languages import Languages
 from ziggy.state import AppState
@@ -135,10 +136,6 @@ class BaasGui(object):
         self.service_win = hildon.StackableWindow()
         self.service_win.set_title(wording.get(service_name))
 
-        if self.input_command not in ["tlate"]:
-            menu = self.create_service_menu()
-            self.service_win.set_app_menu(menu)
-
         # fill text entry with last search
         last_input = self.state.buffers.get(self.input_command,'')
 
@@ -147,15 +144,22 @@ class BaasGui(object):
         self.entry.set_text(last_input)
 
         # go button
-        button = hildon.Button(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT,
+        self.button = hildon.Button(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT,
             hildon.BUTTON_ARRANGEMENT_HORIZONTAL, "go")
-        button.connect("clicked", self.ask_buddy)
-        button.connect("pressed", self.waiting_start)
+
+        self.button.connect("pressed", self.waiting_start)
+        #self.button.connect("clicked", self.ask_buddy)        
+        self.button.connect("clicked", lambda w: gobject.idle_add(self.ask_buddy))#waiting_stop))
+        #self.button.connect("released", self.waiting_stop)
+
+        if self.input_command != 'tlate':
+            self.entry.set_events(gtk.gdk.KEY_PRESS_MASK)
+            self.entry.connect("key_press_event", self.event_enter_key)
 
         if self.input_command == "deli":
-            input_box = self.input_deli(self.entry, button)
+            input_box = self.input_deli(self.entry)#, self.button)
         elif self.input_command == "metacritic":
-            input_box = self.input_metacritic(self.entry, button)
+            input_box = self.input_metacritic(self.entry)#, self.button)
         elif self.input_command == "tlate":
             # text input
             self.textentry = hildon.TextView()
@@ -167,10 +171,14 @@ class BaasGui(object):
             buffer = self.textentry.get_buffer()
             buffer.connect("changed", self.input_changed)
 
-            input_box = self.input_translate(self.textentry, button)
+            input_box = self.input_translate(self.textentry)#, self.button)
         else:
-            input_box = self.input_websearch(self.entry, button)
+            input_box = self.input_websearch(self.entry)#, self.button)
 
+        if self.input_command not in ["tlate"]:
+            menu = self.create_service_menu()
+            self.service_win.set_app_menu(menu)
+       
         # the results
         self.result_area = gtk.VBox(False, 5)
         self.table = gtk.Table(20, 1, False)
@@ -251,6 +259,7 @@ class BaasGui(object):
                 self.state.langs[self.input_command] = None
                 self.lang_button.set_label('language')
         self.history_dialog.destroy()
+        self.trigger_request()
 
     def menu_history(self, button):
 
@@ -328,23 +337,21 @@ class BaasGui(object):
         active = selector.get_active()
         self.input_lang = self.lang.get('gnews', index=active)
         self.state.langs[self.input_command] = self.lang.get('gnews', index=active)
-        
 
-    def input_websearch(self, textentry, button):
+    def input_websearch(self, textentry):
         ''' build input fields for delicious service '''
-
         if self.input_command == "gnews": self.lang_button = self.get_edition_button()
         else: self.lang_button = self.get_lang_button()
 
         self.lang_button.set_size_request(210, 40)
         textentry.set_size_request(350, 70)
-        button.set_size_request(130, 40)
-        button.set_border_width(1)
+        self.button.set_size_request(130, 40)
+        self.button.set_border_width(1)
         self.lang_button.set_border_width(1)
 
         box2 = gtk.HBox(False)
         box2.pack_start(self.lang_button, True, True, 0)
-        box2.pack_start(button, False, True, 0)
+        box2.pack_start(self.button, False, True, 0)
         box2.set_size_request(250, 50)
 
         table = gtk.Table(1, 20, False)
@@ -355,15 +362,14 @@ class BaasGui(object):
         box.pack_start(table, True, True, 0)
         return box
 
-    def input_metacritic(self, textentry, button):
+    def input_metacritic(self, textentry):
         ''' build input fields for metacritics '''
-
         textentry.set_size_request(350, 70)
-        button.set_size_request(180, 70)
-        button.set_border_width(1)
+        self.button.set_size_request(180, 70)
+        self.button.set_border_width(1)
 
         box2 = gtk.HBox(False)
-        box2.pack_start(button, True, True, 0)
+        box2.pack_start(self.button, True, True, 0)
         box2.set_size_request(280, 50)
 
         table = gtk.Table(1, 20, False)
@@ -376,9 +382,9 @@ class BaasGui(object):
 
     def input_deli_pop(self, button):
         ''' delicious request for most popular? '''
-        self.state.deli_pop =  button.get_active()
+        self.state.deli_pop = button.get_active()
 
-    def input_deli(self, textentry, button):
+    def input_deli(self, textentry):
         ''' build input fields for delicious service '''
         self.pop_button = hildon.CheckButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT)
         self.pop_button.set_label("most popular")
@@ -387,13 +393,13 @@ class BaasGui(object):
 
         textentry.set_size_request(350, 70)
         self.pop_button.set_size_request(200, 50)
-        button.set_size_request(130, 50)
-        button.set_border_width(1)
+        self.button.set_size_request(130, 50)
+        self.button.set_border_width(1)
         self.pop_button.set_border_width(1)
 
         box2 = gtk.HBox(False)
         box2.pack_start(self.pop_button, True, True, 0)
-        box2.pack_start(button, False, True, 0)
+        box2.pack_start(self.button, False, True, 0)
         box2.set_size_request(250, 50)
 
         table = gtk.Table(1, 20, False)
@@ -442,13 +448,13 @@ class BaasGui(object):
         lang_button.show_all()
         return lang_button
 
-    def input_translate(self, textentry, button):
+    def input_translate(self, textentry):#, button):
         ''' build input fields for delicious service '''
 
         textentry.set_wrap_mode(gtk.WRAP_CHAR)
         textentry.set_size_request(200, 50)
 
-        button.set_size_request(200, 50)
+        self.button.set_size_request(200, 50)
 
         in_button = self.get_tlate_button('from','@')
         in_button.set_size_request(100, 50)
@@ -457,7 +463,7 @@ class BaasGui(object):
 
         input_table = gtk.Table(2, 20, False)
         input_table.attach(textentry, 0, 12, 0, 2)
-        input_table.attach(button, 13, 20, 1, 2, gtk.FILL, gtk.FILL)#,0,5)
+        input_table.attach(self.button, 13, 20, 1, 2, gtk.FILL, gtk.FILL)#,0,5)
         input_table.attach(in_button, 13, 16, 0, 1, gtk.FILL|gtk.EXPAND, gtk.FILL)#,0,5)
         input_table.attach(dest_button, 17, 20, 0, 1, gtk.FILL|gtk.EXPAND, gtk.FILL)#,0,5)
 
@@ -487,8 +493,16 @@ class BaasGui(object):
         print "term %s" % term
         return term.strip()
 
+    def trigger_request(self):
+        self.button.emit('clicked')            
+        self.button.emit('pressed')
+        
+    def event_enter_key(self, widget, event):
+        ''' handles enter key ''' 
+        if event.hardware_keycode in [36,104]:                                 
+            self.trigger_request()
 
-    def waiting_start(self, msg):
+    def waiting_start(self,msg):
         hildon.hildon_gtk_window_set_progress_indicator(self.service_win, 1)
 
     def waiting_stop(self):
@@ -505,8 +519,8 @@ class BaasGui(object):
         self.state.history[self.input_command] =  self.state.history[self.input_command][0:10]
         self.state.save()
 
-    def ask_buddy(self, widget):
-
+    def ask_buddy(self):
+        self.waiting_start('msg')   
         self.result_data = None
         commando_func = pluginHnd.commands.get(self.input_command)
 
@@ -547,8 +561,8 @@ class BaasGui(object):
             self.create_result_text(result_markup)
 
         self.result_area.add(self.result_output)
-        self.result_output.show()
-        self.waiting_stop()
+        self.result_output.show()   
+        self.waiting_stop()   
 
     def get_result_markup(self):
         """ returns pango formatted string """
