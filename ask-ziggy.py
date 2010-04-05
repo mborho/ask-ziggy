@@ -248,7 +248,9 @@ class BaasGui(object):
         if self.input_command == "deli":
             if lang:
                 self.state.deli_pop = True
-                self.pop_button.set_active(self.state.deli_pop)
+            else:
+                self.state.deli_pop = False
+            self.pop_button.set_active(self.state.deli_pop)
         else:
             if lang:
                 h_lang = self.lang.get(self.input_command, short=lang)
