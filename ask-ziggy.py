@@ -61,7 +61,9 @@ class BaasGui(object):
     def __init__(self):
         # auto connect deactivated
         #self.check_connection() 
-        self.state = AppState()
+        services = sorted(wording.items(), key=lambda(k,v):(v,k))
+        self.services = services
+        self.state = AppState(services)
         self.lang = Languages()
         self.input_command = None
         self.input_buffer = None
@@ -83,29 +85,36 @@ class BaasGui(object):
         menu = self.create_main_menu()
         self.window.set_app_menu(menu)
 
-        self.box = gtk.HBox(False, 5)
+        self.box = self.get_services_main()
         self.window.add(self.box)
+        self.window.show()
 
-        panned_window = hildon.PannableArea()
-        panned_window.set_border_width(10)
+    def get_services_main(self):
+        box = gtk.HBox(False, 5)        
+        self.panned_window = hildon.PannableArea()
+        self.panned_window.set_border_width(10)
+        self.panned_window.show()
+        self.services_box = self.get_services_box()
+        self.panned_window.add_with_viewport(self.services_box)
+        box.pack_start(self.panned_window, True, True, 0)
+        box.show()
+        return box
 
-        self.box.pack_start(panned_window, True, True, 0)
-        panned_window.show()
-
+    def get_services_box(self):
         services_box = gtk.VBox(False, 15)
-        panned_window.add_with_viewport(services_box)
+        #set button height
+        height = gtk.HILDON_SIZE_THUMB_HEIGHT 
+        if len(self.state.services_active) < 4:
+            height = gtk.HILDON_SIZE_AUTO_HEIGHT       
 
-        service_labels = sorted(wording.items(), key=lambda(k,v):(v,k))
-        for (p, button_label) in service_labels:
-            button = hildon.Button(gtk.HILDON_SIZE_THUMB_HEIGHT,
+        for (p, button_label) in self.state.services_active:
+            button = hildon.Button(height,
                 hildon.BUTTON_ARRANGEMENT_VERTICAL, button_label)
             button.connect("clicked", self.show_service_window, p)
             services_box.pack_start(button, True, True, 0)
             button.show()
-
         services_box.show()
-        self.box.show()
-        self.window.show()
+        return services_box
 
     def create_main_menu(self):
         menu = hildon.AppMenu()
@@ -113,7 +122,12 @@ class BaasGui(object):
         about.set_label('About')
         about.connect('clicked', self.menu_dialog,about_txt)
 
+        services = hildon.GtkButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT)
+        services.set_label('Services')
+        services.connect('clicked', self.menu_services)
+
         menu.append(about)
+        menu.append(services)
         menu.show_all()
         return menu
 
@@ -126,6 +140,45 @@ class BaasGui(object):
         dialog.set_transient_for(self.window)
         dialog.action_area.pack_start(label, True, True, 0)
         dialog.show_all()
+
+    def menu_services(self, button):
+        dialog = gtk.Dialog()
+        dialog.set_title("Select active services")
+        dialog.set_transient_for(self.window)
+        
+        parea = hildon.PannableArea()
+        services_box = gtk.VBox(False, 15)
+        for s in self.services:
+            sbutton = hildon.CheckButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_FINGER_HEIGHT)
+            sbutton.set_label(s[1])
+            if s in self.state.services_active:
+                sbutton.set_active(True)
+            sbutton.connect("toggled", self.menu_service_selected, s)
+            services_box.add(sbutton)
+
+        parea.add_with_viewport(services_box)
+        parea.set_size_request(750, 320)        
+        dialog.action_area.add(parea)
+        dialog.show_all()
+
+    def menu_service_selected(self, button, service):
+        active = button.get_active()
+        if active:
+            services = []
+            self.state.services_active.insert(self.state.services.index(service),service)
+            for s in self.state.services:
+                if s in self.state.services_active:
+                    services.append(s)                
+            self.state.services_active = services
+        else:
+            self.state.services_active.remove(service)
+
+        self.services_box.destroy()
+        self.services_box = self.get_services_box()
+        self.panned_window.add_with_viewport(self.services_box)
+        self.panned_window.show()
+        self.state.save()
+
 
     def show_service_window(self, widget, service_name):
 

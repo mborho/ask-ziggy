@@ -15,7 +15,9 @@ import simplejson
 
 class AppState(object):
 
-    def __init__(self):
+    def __init__(self, services):
+        self.services = services
+        self.services_active = services[0:]
         self.deli_pop = 0
         self.buffers = {}
         self.langs = {}
@@ -31,11 +33,13 @@ class AppState(object):
             f.close()
             data = simplejson.loads(json)
             self.history = data.get('history',{})
+            self.services_active = data.get('services_active',self.services)
+            self.services_active = map(tuple, self.services_active)
         except:                
             print "no file found"
         
     def save(self):
-        state = {'history':self.history}
+        state = {'history':self.history, 'services_active': self.services_active}
         f = open(self.config_file,'w')
         simplejson.dump(state, f)
         f.close()
