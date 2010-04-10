@@ -256,8 +256,9 @@ class BaasGui(object):
         return menu
 
     def clear_history_list(self, button):
+        print gtk.STOCK_YES
         dialog = gtk.Dialog("", self.service_win, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                            (gtk.STOCK_NO, gtk.RESPONSE_REJECT, gtk.STOCK_YES, gtk.RESPONSE_ACCEPT))
+                            (gtk.STOCK_NO, gtk.RESPONSE_REJECT, gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
         dialog.action_area.add(gtk.Label('Clear the history of this Service?'))
         hbox = gtk.HBox()
         hbox.pack_start(gtk.Label("Do you want to clear the history of this service?"), False, False, 5)
@@ -268,7 +269,7 @@ class BaasGui(object):
                 del self.state.history[self.input_command]
                 self.state.save()
             except: pass
-            hildon.hildon_banner_show_information(self.service_win, "", "Cleared history for this service.")
+            hildon.hildon_banner_show_information(self.service_win, "", "Cleared history for this service...")
         dialog.destroy()
 
     def get_history_list(self, button):
@@ -540,17 +541,18 @@ class BaasGui(object):
 
     def prepare_term(self):
         ''' prepares statement for ape request '''
+        input_buffer = self.input_buffer.strip()
         if self.input_command == 'deli' and self.state.deli_pop:
-            term = self.input_buffer + ' #pop'
+            term = input_buffer + ' #pop'
         elif self.input_command == "tlate":
-            term = self.input_buffer
+            term = input_buffer
             for token in [t for t in ['@','#'] if self.state.tlate.get(t)]:
                 term = "%s %s%s" % (term, token, self.state.tlate.get(token)[0])
 
         elif self.state.langs.get(self.input_command):
-            term = self.input_buffer + ' #'+self.state.langs[self.input_command][0]
+            term = input_buffer + ' #'+self.state.langs[self.input_command][0]
         else:
-            term = self.input_buffer
+            term = input_buffer
         print "term %s" % term
         return term.strip()
 
@@ -594,11 +596,9 @@ class BaasGui(object):
 
         if commando_func:
             self.term = self.prepare_term()
-            if self.term:
-                self.update_state()
             result_msg = ''
             try:
-                result_msg = commando_func(self.term)
+                result_msg = commando_func(self.term)                
             except URLError, e:
                 hildon.hildon_banner_show_information(self.window, "",
                     "Request failed, timed out.")
@@ -610,6 +610,8 @@ class BaasGui(object):
             except Exception, e:
                 hildon.hildon_banner_show_information(self.window, "", "Error occured.")
             self.result_data = result_msg
+            if self.term:
+                self.update_state()
         else:
             self.result_data = [{'title':'Uups, commando not known\n'}]
 
