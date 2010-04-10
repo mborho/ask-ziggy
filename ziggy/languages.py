@@ -228,7 +228,6 @@ imdb_languages = [
 ('pt','Português'),
 ]
 
-
 class Languages(object):
 
     def __init__(self):
@@ -242,7 +241,6 @@ class Languages(object):
 
     def get(self, service, index=None, short=None):
         lang_list = self.__getattribute__(service)
-        print "short", short
         if index > -1:
             return lang_list[index]
         elif short:
@@ -251,4 +249,3 @@ class Languages(object):
                     return (shorty,name)
         else: 
             return lang_list
-
