@@ -61,9 +61,9 @@ class BaasGui(object):
     def __init__(self):
         # auto connect deactivated
         #self.check_connection() 
-        services = sorted(wording.items(), key=lambda(k,v):(v,k))
+        services = sorted(wording.items(), key=lambda(k,v):(v,k))        
         self.services = services
-        self.state = AppState(services)
+        self.state = AppState([a[0] for a in services])
         self.lang = Languages()
         self.input_command = None
         self.input_buffer = None
@@ -107,10 +107,10 @@ class BaasGui(object):
         if len(self.state.services_active) < 4:
             height = gtk.HILDON_SIZE_AUTO_HEIGHT       
 
-        for (p, button_label) in self.state.services_active:
+        for service in self.state.services_active:
             button = hildon.Button(height,
-                hildon.BUTTON_ARRANGEMENT_VERTICAL, button_label)
-            button.connect("clicked", self.show_service_window, p)
+                hildon.BUTTON_ARRANGEMENT_VERTICAL, wording.get(service, service))
+            button.connect("clicked", self.show_service_window, service)
             services_box.pack_start(button, True, True, 0)
             button.show()
         services_box.show()
@@ -151,9 +151,9 @@ class BaasGui(object):
         for s in self.services:
             sbutton = hildon.CheckButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_FINGER_HEIGHT)
             sbutton.set_label(s[1])
-            if s in self.state.services_active:
+            if s[0] in self.state.services_active:
                 sbutton.set_active(True)
-            sbutton.connect("toggled", self.menu_service_selected, s)
+            sbutton.connect("toggled", self.menu_service_selected, s[0])
             services_box.add(sbutton)
 
         parea.add_with_viewport(services_box)
@@ -172,7 +172,6 @@ class BaasGui(object):
             self.state.services_active = services
         else:
             self.state.services_active.remove(service)
-
         self.services_box.destroy()
         self.services_box = self.get_services_box()
         self.panned_window.add_with_viewport(self.services_box)
@@ -200,10 +199,9 @@ class BaasGui(object):
         self.button = hildon.Button(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT,
             hildon.BUTTON_ARRANGEMENT_HORIZONTAL, "go")
 
+        #handle request signal
         self.button.connect("pressed", self.waiting_start)
-        #self.button.connect("clicked", self.ask_buddy)        
         self.button.connect("clicked", lambda w: gobject.idle_add(self.ask_buddy))#waiting_stop))
-        #self.button.connect("released", self.waiting_stop)
 
         if self.input_command != 'tlate':
             self.entry.set_events(gtk.gdk.KEY_PRESS_MASK)
@@ -257,13 +255,21 @@ class BaasGui(object):
         menu.show_all()
         return menu
 
-
     def clear_history_list(self, button):
-        try:
-            del self.state.history[self.input_command]
-            self.state.save()
-        except: pass
-        hildon.hildon_banner_show_information(self.window, "", "cleared history for this service")
+        dialog = gtk.Dialog("", self.service_win, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                            (gtk.STOCK_NO, gtk.RESPONSE_REJECT, gtk.STOCK_YES, gtk.RESPONSE_ACCEPT))
+        dialog.action_area.add(gtk.Label('Clear the history of this Service?'))
+        hbox = gtk.HBox()
+        hbox.pack_start(gtk.Label("Do you want to clear the history of this service?"), False, False, 5)
+        hbox.show_all()
+        dialog.vbox.pack_start(hbox)
+        if dialog.run() == gtk.RESPONSE_ACCEPT:
+            try:
+                del self.state.history[self.input_command]
+                self.state.save()
+            except: pass
+            hildon.hildon_banner_show_information(self.service_win, "", "Cleared history for this service.")
+        dialog.destroy()
 
     def get_history_list(self, button):
         box = gtk.HBox(True, 5)
@@ -627,9 +633,12 @@ class BaasGui(object):
 
         if self.input_command == 'tlate':
             text = htmlentities_decode(data.get('text'))
-            lang = self.lang.get('tlate_to', short=data.get('lang'))[1]
-            from_lang = self.lang.get('tlate_from', short=data.get('detected_lang'))[1]
-            markup = "<big>%s</big>\n\n<small>(%s => %s)</small>" % (text, from_lang, lang)
+            if text:
+                lang = self.lang.get('tlate_to', short=data.get('lang'))[1]
+                from_lang = self.lang.get('tlate_from', short=data.get('detected_lang'))[1]
+                markup = "<big>%s</big>\n\n<small>(%s => %s)</small>" % (text, from_lang, lang)
+            else:
+                markup = "<small>%s</small>\n\n" % "No result was returned, translation failed."
         elif self.input_command == 'weather':
             i = data.get('info')
             markup = '%s:\n' % (i.get('city'))#, i.get('current_date_time'))

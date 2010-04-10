@@ -24,7 +24,15 @@ class AppState(object):
         self.tlate = {}
         self.history = {}
         self.config_file = os.path.expanduser("~")+"/.ask-ziggy"
-        self.load()
+        self.load()    
+
+    def normalize_active_services(self):
+        ''' active services list should be simple list '''
+        result = []
+        for s in self.services_active:
+            service = s[0] if type(s) == list else s
+            result.append(service)        
+        self.services_active = result if result else self.services_active
 
     def load(self):
         try:
@@ -33,9 +41,9 @@ class AppState(object):
             f.close()
             data = simplejson.loads(json)
             self.history = data.get('history',{})
-            self.services_active = data.get('services_active',self.services)
-            self.services_active = map(tuple, self.services_active)
-        except:                
+            self.services_active = data.get('services_active',self.services_active)            
+            self.normalize_active_services()
+        except:
             print "no file found"
         
     def save(self):

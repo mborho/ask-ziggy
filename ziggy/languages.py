@@ -19,36 +19,36 @@ languages = [
     #('tzh', 'chinese-traditional'),
     #('hr', 'croatian'),
     #('cs', 'czech'),
-    ('dk', 'Danish'),
-    ('nl', 'Dutch'),
+    ('dk', 'Dansk'),
+    ('nl', 'Nederlands'),
     ('en', 'English'),
     #('et', 'estonian'),
-    ('fi', 'Finnish'),
-    ('fr', 'French'),
-    ('de', 'German'),
+    ('fi', 'Suomi'),
+    ('fr', 'Français'),
+    ('de', 'Deutsch'),
     #('el', 'greek'),
     #('he', 'hebrew'),
     #('hu', 'hungarian'),
     #('is', 'icelandic'),
     #('id', 'indonesian'),
-    ('it', 'Italian'),
+    ('it', 'Italiano'),
     #('ja', 'japanese'),
     #('ko', 'korean'),
     #('lv', 'latvian'),
     #('lt', 'lithuanian'),
-    ('no', 'Norwegian'),
+    ('no', 'Norsk'),
     #('fa', 'persian'),
     #('pl', 'polish'),
     #('pt', 'portuguese'),
-    ('ro', 'Romanian'),
-    ('ru', 'Russian'),
+    ('ro', 'Română'),
+    ('ru', 'Русский'),
     #('sk', 'slovak'),
     #('sr', 'serbian'),
     #('sl', 'slovenian'),
-    ('es', 'Spanish'),
+    ('es', 'Español'),
     #('sv', 'swedish'),
     #('th', 'thai'),
-    ('tr', 'Turkish'),
+    ('tr', 'Türkçe'),
 ]
 
 glang_tlate = [
@@ -242,6 +242,7 @@ class Languages(object):
 
     def get(self, service, index=None, short=None):
         lang_list = self.__getattribute__(service)
+        print "short", short
         if index > -1:
             return lang_list[index]
         elif short:
