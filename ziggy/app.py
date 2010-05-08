@@ -10,10 +10,8 @@
 ## GNU General Public License for more details.
 ##
 # Copyright 2010 Martin Borho <martin@borho.net>
-import gtk
 import osso
 import dbus
-import hildon
 import urllib
 import gobject
 import socket
@@ -22,6 +20,13 @@ from ziggy.languages import Languages
 from ziggy.state import AppState
 from baas.core.plugins import PluginLoader
 from baas.core.helpers import strip_tags, htmlentities_decode, xmlify
+from gtk import set_application_name, HBox, VBox, Label, Dialog, gdk, TextBuffer, Table, ListStore, CellRendererText, TreeViewColumn, main_quit
+from gtk import DIALOG_MODAL, DIALOG_DESTROY_WITH_PARENT, STOCK_NO, RESPONSE_REJECT, STOCK_OK, RESPONSE_ACCEPT, HILDON_UI_MODE_NORMAL
+from gtk import HILDON_SIZE_THUMB_HEIGHT, HILDON_SIZE_AUTO_HEIGHT, HILDON_SIZE_AUTO_WIDTH, HILDON_SIZE_FINGER_HEIGHT, WRAP_CHAR
+from gtk import FILL, EXPAND, JUSTIFY_LEFT
+from hildon import Program, StackableWindow, PannableArea, Button, AppMenu, GtkButton, CheckButton, Entry, TextView, GtkTreeView, PickerButton
+from hildon import hildon_banner_show_information, hildon_gtk_window_set_progress_indicator, TouchSelector
+from hildon import  BUTTON_ARRANGEMENT_VERTICAL, BUTTON_ARRANGEMENT_HORIZONTAL, TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE
 
 # set timeout to 10 seconds
 timeout = 10
@@ -68,13 +73,13 @@ class BaasGui(object):
         self.input_lang = None
         self.history_button = None
         self.lang_button = None
-        gtk.set_application_name("Ask Ziggy")
+        set_application_name("Ask Ziggy")
 
         # Create a new programm
-        program = hildon.Program.get_instance()
+        program = Program.get_instance()
 
         # Create a new window
-        self.window = hildon.StackableWindow()
+        self.window = StackableWindow()
         self.window.set_default_size(400,200)
         self.window.set_title("Ask Ziggy")
         self.window.connect("delete_event", self.delete_event)
@@ -88,8 +93,8 @@ class BaasGui(object):
         self.window.show()
 
     def get_services_main(self):
-        box = gtk.HBox(False, 5)        
-        self.panned_window = hildon.PannableArea()
+        box = HBox(False, 5)        
+        self.panned_window = PannableArea()
         self.panned_window.set_border_width(10)
         self.panned_window.show()
         self.services_box = self.get_services_box()
@@ -99,15 +104,13 @@ class BaasGui(object):
         return box
 
     def get_services_box(self):
-        services_box = gtk.VBox(False, 15)
+        services_box = VBox(False, 15)
         #set button height
-        height = gtk.HILDON_SIZE_THUMB_HEIGHT 
+        height = HILDON_SIZE_THUMB_HEIGHT 
         if len(self.state.services_active) < 4:
-            height = gtk.HILDON_SIZE_AUTO_HEIGHT       
-
+            height = HILDON_SIZE_AUTO_HEIGHT
         for service in self.state.services_active:
-            button = hildon.Button(height,
-                hildon.BUTTON_ARRANGEMENT_VERTICAL, wording.get(service, service))
+            button = Button(height,BUTTON_ARRANGEMENT_VERTICAL, wording.get(service, service))
             button.connect("clicked", self.show_service_window, service)
             services_box.pack_start(button, True, True, 0)
             button.show()
@@ -115,12 +118,12 @@ class BaasGui(object):
         return services_box
 
     def create_main_menu(self):
-        menu = hildon.AppMenu()
-        about = hildon.GtkButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT)
+        menu = AppMenu()
+        about = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
         about.set_label('About')
         about.connect('clicked', self.menu_dialog,about_txt)
 
-        services = hildon.GtkButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT)
+        services = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
         services.set_label('Services')
         services.connect('clicked', self.menu_services)
 
@@ -131,23 +134,23 @@ class BaasGui(object):
 
     def menu_dialog(self, button, text):
 
-        label = gtk.Label()
+        label = Label()
         label.set_markup(text)
-        dialog = gtk.Dialog()
+        dialog = Dialog()
         dialog.set_title(button.get_label())
         dialog.set_transient_for(self.window)
         dialog.action_area.pack_start(label, True, True, 0)
         dialog.show_all()
 
     def menu_services(self, button):
-        dialog = gtk.Dialog()
+        dialog = Dialog()
         dialog.set_title("Select active services")
         dialog.set_transient_for(self.window)
         
-        parea = hildon.PannableArea()
-        services_box = gtk.VBox(False, 15)
+        parea = PannableArea()
+        services_box = VBox(False, 15)
         for s in self.services:
-            sbutton = hildon.CheckButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_FINGER_HEIGHT)
+            sbutton = CheckButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)
             sbutton.set_label(s[1])
             if s[0] in self.state.services_active:
                 sbutton.set_active(True)
@@ -183,26 +186,26 @@ class BaasGui(object):
         self.input_buffer = ''
         self.output_result = 'result'
 
-        self.service_win = hildon.StackableWindow()
+        self.service_win = StackableWindow()
         self.service_win.set_title(wording.get(service_name))
 
         # fill text entry with last search
         last_input = self.state.buffers.get(self.input_command,'')
 
         # single entry line
-        self.entry = hildon.Entry(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT)
+        self.entry = Entry(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
         self.entry.set_text(last_input)
 
         # go button
-        self.button = hildon.Button(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT,
-            hildon.BUTTON_ARRANGEMENT_HORIZONTAL, "go")
+        self.button = Button(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT,
+            BUTTON_ARRANGEMENT_HORIZONTAL, "go")
 
         #handle request signal
         self.button.connect("pressed", self.waiting_start)
         self.button.connect("clicked", lambda w: gobject.idle_add(self.ask_buddy))#waiting_stop))
 
         if self.input_command != 'tlate':
-            self.entry.set_events(gtk.gdk.KEY_PRESS_MASK)
+            self.entry.set_events(gdk.KEY_PRESS_MASK)
             self.entry.connect("key_press_event", self.event_enter_key)
 
         if self.input_command == "deli":
@@ -211,9 +214,9 @@ class BaasGui(object):
             input_box = self.input_metacritic(self.entry)#, self.button)
         elif self.input_command == "tlate":
             # text input
-            self.textentry = hildon.TextView()
+            self.textentry = TextView()
             self.input_buffer = last_input
-            old_buffer = gtk.TextBuffer()
+            old_buffer = TextBuffer()
             old_buffer.set_text(last_input)
             self.textentry.set_buffer(old_buffer)
 
@@ -229,8 +232,8 @@ class BaasGui(object):
             self.service_win.set_app_menu(menu)
        
         # the results
-        self.result_area = gtk.VBox(False, 5)
-        self.table = gtk.Table(20, 1, False)
+        self.result_area = VBox(False, 5)
+        self.table = Table(20, 1, False)
         self.table.attach(input_box, 0, 1, 0 , 1)
         self.table.attach(self.result_area, 0, 1, 1 , 20)
 
@@ -238,13 +241,13 @@ class BaasGui(object):
         self.service_win.show_all()
 
     def create_service_menu(self):
-        menu = hildon.AppMenu()
+        menu = AppMenu()
         #h_button = self.get_history_button()
-        h_button = hildon.GtkButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT)
+        h_button = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
         h_button.connect('clicked', self.get_history_list)
         h_button.set_label('History')
 
-        c_button = hildon.GtkButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT)
+        c_button = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
         c_button.connect('clicked', self.clear_history_list)
         c_button.set_label('Clear history')
 
@@ -254,27 +257,26 @@ class BaasGui(object):
         return menu
 
     def clear_history_list(self, button):
-        print gtk.STOCK_YES
-        dialog = gtk.Dialog("", self.service_win, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                            (gtk.STOCK_NO, gtk.RESPONSE_REJECT, gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
-        dialog.action_area.add(gtk.Label('Clear the history of this Service?'))
-        hbox = gtk.HBox()
-        hbox.pack_start(gtk.Label("Do you want to clear the history of this service?"), False, False, 5)
+        dialog = Dialog("", self.service_win, DIALOG_MODAL | DIALOG_DESTROY_WITH_PARENT,
+                            (STOCK_NO, RESPONSE_REJECT, STOCK_OK, RESPONSE_ACCEPT))
+        dialog.action_area.add(Label('Clear the history of this Service?'))
+        hbox = HBox()
+        hbox.pack_start(Label("Do you want to clear the history of this service?"), False, False, 5)
         hbox.show_all()
         dialog.vbox.pack_start(hbox)
-        if dialog.run() == gtk.RESPONSE_ACCEPT:
+        if dialog.run() == RESPONSE_ACCEPT:
             try:
                 del self.state.history[self.input_command]
                 self.state.save()
             except: pass
-            hildon.hildon_banner_show_information(self.service_win, "", "Cleared history for this service...")
+            hildon_banner_show_information(self.service_win, "", "Cleared history for this service...")
         dialog.destroy()
 
     def get_history_list(self, button):
-        box = gtk.HBox(True, 5)
-        parea = hildon.PannableArea()
-        treeview = hildon.GtkTreeView(gtk.HILDON_UI_MODE_NORMAL)
-        lstore = gtk.ListStore(str, str);
+        box = HBox(True, 5)
+        parea = PannableArea()
+        treeview = GtkTreeView(HILDON_UI_MODE_NORMAL)
+        lstore = ListStore(str, str);
         history = self.state.history.get(self.input_command,[])
         for e in history:
             (term, lang) = self.parse_term(e)
@@ -285,15 +287,15 @@ class BaasGui(object):
                 sel_text += " <small>/ most popular</small>"
             lstore.append([str(e),sel_text])
         treeview.set_model(lstore)
-        renderer = gtk.CellRendererText()
-        column = gtk.TreeViewColumn('title', renderer, markup=1)
+        renderer = CellRendererText()
+        column = TreeViewColumn('title', renderer, markup=1)
         column.set_property("expand", True)
         treeview.append_column(column)
         treeview.connect("row-activated", self.history_picked)
 
         parea.add(treeview)
         parea.set_size_request(750, 320)
-        self.history_dialog = gtk.Dialog('History')
+        self.history_dialog = Dialog('History')
         self.history_dialog.set_title(button.get_label())
         self.history_dialog.action_area.add(parea)
         self.history_dialog.show_all()
@@ -323,12 +325,12 @@ class BaasGui(object):
 
     def menu_history(self, button):
 
-        label = gtk.Label()
+        label = Label()
         label.set_markup(self.input_command)
         history = self.state.history.get(self.input_command)
         if history:
             label.set_markup(str(history))
-        dialog = gtk.Dialog()
+        dialog = Dialog()
         dialog.set_title(button.get_label())
         dialog.set_transient_for(self.window)
         dialog.action_area.pack_start(label, True, True, 0)
@@ -336,17 +338,17 @@ class BaasGui(object):
 
     def get_lang_button(self):
         """ builds button for language selection """
-        lang_button = hildon.PickerButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT,
-            hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
+        lang_button = PickerButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT,
+            BUTTON_ARRANGEMENT_HORIZONTAL)
 
-        selector = hildon.TouchSelector()
-        selector.set_column_selection_mode(hildon.TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE)
+        selector = TouchSelector()
+        selector.set_column_selection_mode(TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE)
 
-        store = gtk.ListStore(str, str);
+        store = ListStore(str, str);
         for (short, name) in self.lang.get(self.input_command):
             store.append([short,name])
 
-        renderer = gtk.CellRendererText()
+        renderer = CellRendererText()
         renderer.set_fixed_size(-1, 100)
 
         column = selector.append_column(store, renderer, text=1)
@@ -369,10 +371,10 @@ class BaasGui(object):
 
     def get_edition_button(self):
         """ builds button for google news language selection """
-        lang_button = hildon.PickerButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT,
-            hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
+        lang_button = PickerButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT,
+            BUTTON_ARRANGEMENT_HORIZONTAL)
         lang_button.set_label("edition")
-        selector = hildon.TouchSelector(text=True)
+        selector = TouchSelector(text=True)
         for (short, name) in self.lang.get('gnews'):
             selector.append_text(name)
         lang_button.set_selector(selector)
@@ -409,16 +411,16 @@ class BaasGui(object):
         self.button.set_border_width(1)
         self.lang_button.set_border_width(1)
 
-        box2 = gtk.HBox(False)
+        box2 = HBox(False)
         box2.pack_start(self.lang_button, True, True, 0)
         box2.pack_start(self.button, False, True, 0)
         box2.set_size_request(250, 50)
 
-        table = gtk.Table(1, 20, False)
+        table = Table(1, 20, False)
         table.attach(textentry, 0, 12, 0 , 1, xpadding=3)
         table.attach(box2, 13, 20, 0 , 1, ypadding=10)
 
-        box = gtk.HBox(False)
+        box = HBox(False)
         box.pack_start(table, True, True, 0)
         return box
 
@@ -428,15 +430,15 @@ class BaasGui(object):
         self.button.set_size_request(180, 70)
         self.button.set_border_width(1)
 
-        box2 = gtk.HBox(False)
+        box2 = HBox(False)
         box2.pack_start(self.button, True, True, 0)
         box2.set_size_request(280, 50)
 
-        table = gtk.Table(1, 20, False)
+        table = Table(1, 20, False)
         table.attach(textentry, 0, 18, 0 , 1, xpadding=3)
         table.attach(box2, 19, 20, 0 , 1, ypadding=12)
 
-        box = gtk.HBox(False)
+        box = HBox(False)
         box.pack_start(table, True, True, 0)
         return box
 
@@ -446,7 +448,7 @@ class BaasGui(object):
 
     def input_deli(self, textentry):
         ''' build input fields for delicious service '''
-        self.pop_button = hildon.CheckButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT)
+        self.pop_button = CheckButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
         self.pop_button.set_label("most popular")
         self.pop_button.connect("toggled", self.input_deli_pop)
         self.pop_button.set_active(self.state.deli_pop)
@@ -457,16 +459,16 @@ class BaasGui(object):
         self.button.set_border_width(1)
         self.pop_button.set_border_width(1)
 
-        box2 = gtk.HBox(False)
+        box2 = HBox(False)
         box2.pack_start(self.pop_button, True, True, 0)
         box2.pack_start(self.button, False, True, 0)
         box2.set_size_request(250, 50)
 
-        table = gtk.Table(1, 20, False)
+        table = Table(1, 20, False)
         table.attach(textentry, 0, 10, 0 , 1,xpadding=3)
         table.attach(box2, 11, 20, 0 , 1,ypadding=12)
 
-        box = gtk.HBox(False)
+        box = HBox(False)
         box.pack_start(table, True, True, 0)
         return box
 
@@ -481,13 +483,13 @@ class BaasGui(object):
 
     def get_tlate_button(self, label, token):
         """ builds button for language selection """
-        lang_button = hildon.PickerButton(gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_THUMB_HEIGHT,
-            hildon.BUTTON_ARRANGEMENT_HORIZONTAL)
+        lang_button = PickerButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT,
+            BUTTON_ARRANGEMENT_HORIZONTAL)
 
-        selector = hildon.TouchSelector()
-        selector.set_column_selection_mode(hildon.TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE)
+        selector = TouchSelector()
+        selector.set_column_selection_mode(TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE)
 
-        store = gtk.ListStore(str, str);
+        store = ListStore(str, str);
         if token == "@":
             store.append(['','auto'])
             glang_tlate = self.lang.get('tlate_to')
@@ -495,7 +497,7 @@ class BaasGui(object):
             glang_tlate = self.lang.get('tlate_from')
         for (short, name) in glang_tlate:
             store.append([short,name])
-        renderer = gtk.CellRendererText()
+        renderer = CellRendererText()
         renderer.set_fixed_size(-1, 100)
 
         column = selector.append_column(store, renderer, text=1)
@@ -511,7 +513,7 @@ class BaasGui(object):
     def input_translate(self, textentry):#, button):
         ''' build input fields for delicious service '''
 
-        textentry.set_wrap_mode(gtk.WRAP_CHAR)
+        textentry.set_wrap_mode(WRAP_CHAR)
         textentry.set_size_request(200, 50)
 
         self.button.set_size_request(200, 50)
@@ -521,11 +523,11 @@ class BaasGui(object):
         dest_button = self.get_tlate_button('to','#')
         dest_button.set_size_request(100, 50)
 
-        input_table = gtk.Table(2, 20, False)
+        input_table = Table(2, 20, False)
         input_table.attach(textentry, 0, 12, 0, 2)
-        input_table.attach(self.button, 13, 20, 1, 2, gtk.FILL, gtk.FILL)#,0,5)
-        input_table.attach(in_button, 13, 16, 0, 1, gtk.FILL|gtk.EXPAND, gtk.FILL)#,0,5)
-        input_table.attach(dest_button, 17, 20, 0, 1, gtk.FILL|gtk.EXPAND, gtk.FILL)#,0,5)
+        input_table.attach(self.button, 13, 20, 1, 2, FILL, FILL)#,0,5)
+        input_table.attach(in_button, 13, 16, 0, 1, FILL|EXPAND, FILL)#,0,5)
+        input_table.attach(dest_button, 17, 20, 0, 1, FILL|EXPAND, FILL)#,0,5)
 
         return input_table
 
@@ -564,10 +566,10 @@ class BaasGui(object):
             self.trigger_request()
 
     def waiting_start(self,msg):
-        hildon.hildon_gtk_window_set_progress_indicator(self.service_win, 1)
+        hildon_gtk_window_set_progress_indicator(self.service_win, 1)
 
     def waiting_stop(self):
-        hildon.hildon_gtk_window_set_progress_indicator(self.service_win, 0)
+        hildon_gtk_window_set_progress_indicator(self.service_win, 0)
 
     def update_state(self):
         self.state.buffers[self.input_command] = self.input_buffer
@@ -598,15 +600,15 @@ class BaasGui(object):
             try:
                 result_msg = commando_func(self.term)                
             except URLError, e:
-                hildon.hildon_banner_show_information(self.window, "",
+                hildon_banner_show_information(self.window, "",
                     "Request failed, timed out.")
             except IOError, e:
-                hildon.hildon_banner_show_information(self.window, "",
+                hildon_banner_show_information(self.window, "",
                     "No network, please check your connection.")
             except EnvironmentError, e:
-                hildon.hildon_banner_show_information(self.window, "", str(e))
+                hildon_banner_show_information(self.window, "", str(e))
             except Exception, e:
-                hildon.hildon_banner_show_information(self.window, "", "Error occured.")
+                hildon_banner_show_information(self.window, "", "Error occured.")
             self.result_data = result_msg
             if self.term:
                 self.update_state()
@@ -658,11 +660,11 @@ class BaasGui(object):
 
     def create_result_text(self, result_markup):
         """ display result text """
-        self.result_output = hildon.PannableArea()
+        self.result_output = PannableArea()
         if hasattr(self, 'result_text'):
             self.result_text.destroy()
-        self.result_text = gtk.Label()
-        self.result_text.set_justify(gtk.JUSTIFY_LEFT)
+        self.result_text = Label()
+        self.result_text.set_justify(JUSTIFY_LEFT)
         self.result_text.set_line_wrap(True)
         self.result_text.set_markup(result_markup)
         self.result_output.add_with_viewport(self.result_text)
@@ -682,13 +684,13 @@ class BaasGui(object):
 
     def create_result_selector(self, entries=None):
         ''' renders a search reult list '''
-        selector = hildon.TouchSelector()
+        selector = TouchSelector()
         selector.connect("changed", self.result_selection_changed)
 
         try: self.store.clear()
         except: pass
 
-        self.store = gtk.ListStore(int, str);
+        self.store = ListStore(int, str);
         if entries and type(entries) == list:
             for entry in entries:
                 title = '<span>%s</span>' % xmlify(htmlentities_decode(entry.get('title','#')))
@@ -696,7 +698,7 @@ class BaasGui(object):
                 self.store.append([0,title])
         else:
            self.store.append([0,'nothing found'])
-        renderer = gtk.CellRendererText()
+        renderer = CellRendererText()
         renderer.set_fixed_size(-1, 100)
 
         # Add the column to the selector
@@ -737,5 +739,5 @@ class BaasGui(object):
 
     # another callback
     def delete_event(self, widget, event, data=None):
-        gtk.main_quit()
+        main_quit()
         return False
