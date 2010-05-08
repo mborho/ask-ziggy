@@ -1,1 +1,3 @@
 This maemo app performs simple searches against several web apis. Ask Yahoo and Google for news, websites, weather or translations.GTK-Frontend for http://mborho.github.com/baas/ 
+
+Package: http://maemo.org/packages/view/ask-ziggy/
