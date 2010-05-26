@@ -55,12 +55,6 @@ class ResultListModel(QAbstractListModel):
         else: 
             return QVariant()
 
-class StackedWindow(QMainWindow):
-    def __init__(self, *args):
-        apply(QMainWindow.__init__, (self, ) + args)
-        self.widget = QWidget(self)
-        self.setCentralWidget(self.widget)
-
 class ZiggyWindow(QMainWindow):#QtGui.QWidget):
     def __init__(self):
         services = sorted(wording.items(), key=lambda(k,v):(v,k))        
@@ -75,7 +69,10 @@ class ZiggyWindow(QMainWindow):#QtGui.QWidget):
         self.resultData = None
 
         QMainWindow.__init__(self)
+        self.setAttribute(Qt.WA_Maemo5StackedWindow)
         self.main = QWidget(self)
+        #self.main.setAttribute(Qt.WA_Maemo5StackedWindow)
+
         self.setCentralWidget(self.main)
         self.getServicesMain()
 
@@ -91,6 +88,7 @@ class ZiggyWindow(QMainWindow):#QtGui.QWidget):
 
         for short in self.state.services_active:
             button = QPushButton(wording[short])
+            #button.setAttribute(Qt.WA_Maemo5StackedWindow)
             self.connect(button, SIGNAL("clicked()"), self.__getattribute__('service%s' % short.capitalize()))
             grid.addWidget(button, pos[j][0], pos[j][1])
             j = j + 1
@@ -127,6 +125,32 @@ class ZiggyWindow(QMainWindow):#QtGui.QWidget):
 
     def serviceChoosen(self, service):
         self.inputCommand = service
+
+        stackwindow = QMainWindow(self.main)
+        stackwindow.setAttribute(Qt.WA_Maemo5StackedWindow)
+        stackwindow.setWindowTitle(wording[service])
+
+        widget = QWidget(self)
+        stackwindow.setCentralWidget(widget)
+
+        self.goButton = QPushButton("go")
+        self.connect(self.goButton, SIGNAL("clicked()"), self.askBuddy)
+
+        self.inputField = QLineEdit()
+
+        frame = QFrame(widget)
+        self.grid = QGridLayout(widget)
+        #grid.setSpacing(10)
+
+        self.grid.addWidget(self.inputField, 1, 0)
+        self.grid.addWidget(self.goButton, 1, 1)
+        
+        self.resultWidget = QWidget(self)
+        self.grid.addWidget(self.resultWidget, 2, 0, 2 ,2)
+
+        stackwindow.show()
+
+    def foo(self):
         stackwindow = StackedWindow(self.main)
         stackwindow.setWindowTitle(wording[service])
 
