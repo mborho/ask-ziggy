@@ -73,6 +73,7 @@ class BaasGui(object):
         self.input_lang = None
         self.history_button = None
         self.lang_button = None
+        self.service_dialog = None
         set_application_name("Ask Ziggy")
 
         # Create a new programm
@@ -109,7 +110,9 @@ class BaasGui(object):
         height = HILDON_SIZE_THUMB_HEIGHT 
         if len(self.state.services_active) < 4:
             height = HILDON_SIZE_AUTO_HEIGHT
-        for service in self.state.services_active:
+        for service in self.state.services:
+            if service not in self.state.services_active:
+                continue
             button = Button(height,BUTTON_ARRANGEMENT_VERTICAL, wording.get(service, service))
             button.connect("clicked", self.show_service_window, service)
             services_box.pack_start(button, True, True, 0)
@@ -143,25 +146,72 @@ class BaasGui(object):
         dialog.show_all()
 
     def menu_services(self, button):
-        dialog = Dialog()
-        dialog.set_title("Select active services")
-        dialog.set_transient_for(self.window)
-        
+        self.service_dialog = Dialog()
+        self.service_dialog.set_title("Select and sort services")
+        self.service_dialog.set_transient_for(self.window)
+        self.menu_services_list = self.menu_services_parea()
+        self.service_dialog.action_area.add(self.menu_services_list)
+        self.service_dialog.show_all()
+
+    def menu_services_parea(self):
         parea = PannableArea()
         services_box = VBox(False, 15)
-        for s in self.services:
+        x=1
+        len_services = len(self.services)
+        for s in self.state.services:
+            services_opt = HBox(False, 5)
+            # service check button
             sbutton = CheckButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)
-            sbutton.set_label(s[1])
-            if s[0] in self.state.services_active:
+            sbutton.set_label(wording.get(s, s))
+            sbutton.set_size_request(350, 70)
+            if s in self.state.services_active:
                 sbutton.set_active(True)
-            sbutton.connect("toggled", self.menu_service_selected, s[0])
-            services_box.add(sbutton)
+            sbutton.connect("toggled", self.menu_service_selected, s)
+            services_opt.add(sbutton)
+            
+            #up button
+            button = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)
+            button.set_size_request(10, 70)
+            if x > 1:
+                button.set_label("↑")
+                button.connect("clicked", self.menu_service_sorted_up, s)
+            services_opt.add(button)
+            
+            # down button
+            button = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)
+            button.set_size_request(10, 70)
+            if x < len_services:
+                button.set_label("↓")
+                button.connect("clicked", self.menu_service_sorted_down, s)
+            services_opt.add(button)
+            
+            services_box.add(services_opt)
+            x += 1
 
         parea.add_with_viewport(services_box)
-        parea.set_size_request(750, 320)        
-        dialog.action_area.add(parea)
-        dialog.show_all()
-
+        parea.set_size_request(750, 320)    
+        return parea
+        
+    def menu_service_sorted_up(self, button, service):
+        current_pos = self.state.services.index(service)
+        self.state.services.remove(service)
+        self.state.services.insert(current_pos-1, service)
+        self.menu_services_list.destroy()
+        self.menu_services_list = self.menu_services_parea()
+        self.service_dialog.action_area.add(self.menu_services_list)
+        self.service_dialog.show_all()
+        self.rebuild_start_screen()
+        
+    def menu_service_sorted_down(self, button, service):
+        current_pos = self.state.services.index(service)
+        self.state.services.remove(service)
+        self.state.services.insert(current_pos+1, service)
+        self.menu_services_list.destroy()
+        self.menu_services_list = self.menu_services_parea()
+        self.service_dialog.action_area.add(self.menu_services_list)
+        self.service_dialog.show_all()
+        self.rebuild_start_screen()
+        
     def menu_service_selected(self, button, service):
         active = button.get_active()
         if active:
@@ -173,13 +223,15 @@ class BaasGui(object):
             self.state.services_active = services
         else:
             self.state.services_active.remove(service)
+        self.rebuild_start_screen()
+
+    def rebuild_start_screen(self):
         self.services_box.destroy()
         self.services_box = self.get_services_box()
         self.panned_window.add_with_viewport(self.services_box)
         self.panned_window.show()
         self.state.save()
-
-
+        
     def show_service_window(self, widget, service_name):
 
         self.input_command = service_name
