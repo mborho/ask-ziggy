@@ -58,7 +58,8 @@ glang_tlate = [
     ('be', 'Belarusian'),
     ('bg', 'Bulgarian'),
     ('ca', 'Catalan'),
-    #('zh-CN', 'Chinese (Simplified)'),('zh-TW', 'Chinese (Traditional)'),
+    ('zh-CN', 'Chinese (Simplified)'),
+    ('zh-TW', 'Chinese (Traditional)'),
     ('hr', 'Croatian'),
     ('cs', 'Czech'),
     ('da', 'Danish'),
@@ -73,7 +74,7 @@ glang_tlate = [
     ('el', 'Greek'),
     ('ht', 'Haitian Creole'),
     ('iw', 'Hebrew'),
-    #('hi', 'Hindi'),
+    ('hi', 'Hindi'),
     ('hu', 'Hungarian'),
     ('is', 'Icelandic'),
     ('id', 'Indonesian'),
@@ -83,7 +84,7 @@ glang_tlate = [
     ('lv', 'Latvian'),
     ('lt', 'Lithuanian'),
     ('mk', 'Macedonian'),
-    #('ko', 'Korean'),
+    ('ko', 'Korean'),
     ('ms', 'Malay'),
     ('mt', 'Maltese'),
     ('no', 'Norwegian'),
@@ -97,7 +98,8 @@ glang_tlate = [
     ('sl', 'Slovenian'),
     ('es', 'Spanish'),
     ('sw', 'Swahili'),
-    ('sv', 'Swedish'),#('th', 'Thai'),
+    ('sv', 'Swedish'),
+    ('th', 'Thai'),
     ('tr', 'Turkish'),
     ('uk', 'Ukrainian'),
     ('vi', 'Vietnamese'),
@@ -111,8 +113,8 @@ glanguages = [
     ('lang_be', 'Belarusian'),
     ('lang_bg', 'Bulgarian'),
     ('lang_ca', 'Catalan'),
-    #('lang_zh-CN', 'Chinese (Simplified)'),
-    #('lang_zh-TW', 'Chinese (Traditional)'),
+    ('lang_zh-CN', 'Chinese (Simplified)'),
+    ('lang_zh-TW', 'Chinese (Traditional)'),
     ('lang_hr', 'Croatian'),
     ('lang_cs', 'Czech'),
     ('lang_da', 'Danish'),
@@ -130,8 +132,8 @@ glanguages = [
     ('lang_is', 'Icelandic'),
     ('lang_id', 'Indonesian'),
     ('lang_it', 'Italian'),
-    #('lang_ja', 'Japanese'),
-    #('lang_ko', 'Korean'),
+    ('lang_ja', 'Japanese'),
+    ('lang_ko', 'Korean'),
     ('lang_lv', 'Latvian'),
     ('lang_lt', 'Lithuanian'),
     ('lang_no', 'Norwegian'),
@@ -146,28 +148,34 @@ glanguages = [
     ('lang_es', 'Spanish'),
     ('lang_sw', 'Swahili'),
     ('lang_sv', 'Swedish'),
-    #('lang_th', 'Thai'),
+    ('lang_th', 'Thai'),
     ('lang_tr', 'Turkish'),
     ('lang_uk', 'Ukrainian'),
     ('lang_vi', 'Vietnamese'),
 ]
 gnews_editions = [
-    ('us', 'U.S.'),('uk', 'U.K.'),    
+    ('us', 'U.S.'),('uk', 'U.K.'),
     ('au', 'Australia'),('nl_be', 'België'),('fr_be', 'Belgique'),
     ('ca', 'Canada English'),('fr_ca', 'Canada Français'),('cs_cz', 'Česká republika'),
-    ('de', 'Deutschland'),('es', 'España'),('el_gr', 'Ελλάδα'),('fr', 'France'),    
+    ('de', 'Deutschland'),('es', 'España'),('el_gr', 'Ελλάδα'),('fr', 'France'),
     ('in', 'India'),('en_ie', 'Ireland'),('en_il', 'Israel'),('it', 'Italia'),
     ('hu_hu', 'Magyarország'),('nl_nl', 'Nederland'),('nz', 'New Zealand'),
-    ('no_no', 'Norge'),('de_at', 'Österreich'),('pl_pl', 'Polska'), 
+    ('no_no', 'Norge'),('de_at', 'Österreich'),('pl_pl', 'Polska'),
     ('pt-PT_pt', 'Portugal'),('ru_ru', 'Россия'),('de_ch', 'Schweiz'),
     ('fr_ch', 'Suisse'),('en_za', 'South Africa'),('sv_se', 'Sverige'),
-    ('tr_tr', 'Türkiye'),('ru_ua', 'Украина'),('uk_ua', 'Україна'),    
+    ('tr_tr', 'Türkiye'),('ru_ua', 'Украина'),('uk_ua', 'Україна'),
     ('ar_me', 'العالم العربي'),# (Arab world)
     ('ar_ae', 'الإمارات'), #(UAE)
     ('ar_lb', 'لبنان'),# (Lebanon)
     ('ar_sa', 'السعودية'),# (KSA)
     ('ar_eg', 'مصر'),# (Egypt)
     ('iw_il', 'ישראל'),# (Israel)
+    ('cn', '中国版'),
+    ('hk', '香港版'),
+    ('jp', '日本'),
+    ('kr', '한국'),
+    ('tw', '台灣版'),
+    ('hi_in', 'भारत'),
     ('en_my', 'Malaysia'),('en_pk', 'Pakistan'),('en_ph', 'Philippines'),
     ('en_sg', 'Singapore'),('vi_vn', 'Việt Nam'),
     ('es_ar', 'Argentina'),('pt-BR_br', 'Brasil'),('es_cl', 'Chile'),
@@ -177,12 +185,7 @@ gnews_editions = [
     ('en_ke', 'Kenya'),('en_na', 'Namibia'),('en_ng', 'Nigeria'),
     ('fr_sn', 'Sénégal'),('en_tz', 'Tanzania'),('en_ug', 'Uganda'),
     ('en_zw', 'Zimbabwe'),
-    ('cn', 'China'),#中国版
-    ('hk', 'Hong Kong'),#香港版
-    ('jp', 'Japan'),#日本 
-    ('kr', 'Korea'),#한국
-    ('tw', 'Taiwan'),#台灣版 
-    #('hi_in', 'भारत (India)'),('ta_in', 'தமிழ்(India)'),
+#    ('ta_in', 'தமிழ்(India)'),
     #('ml_in', 'മലയാളം (India)'),('te_in', 'తెలుగు (India)'),
 ]
 
@@ -196,14 +199,14 @@ wikipedia_languages = [
 ('es','Español'),
 ('eo','Esperanto'),
 ('fr','Français'),
-#('ko','한국어'),
+('ko','한국어'),
 ('id','Bahasa Indonesia'),
 ('it','Italiano'),
 ('he','עברית'),
 ('lt','Lietuvių'),
 ('hu','Magyar'),
 ('nl','Nederlands'),
-#('ja','日本語'),
+('ja','日本語'),
 ('no','Norsk (bokmål)'),
 ('pl','Polski'),
 ('pt','Português'),
@@ -216,7 +219,8 @@ wikipedia_languages = [
 ('tr','Türkçe'),
 ('uk','Українська'),
 ('vi','Tiếng Việt'),
-('vo','Volapük')
+('vo','Volapük'),
+('zh','中文')
 ]
 
 imdb_languages = [
