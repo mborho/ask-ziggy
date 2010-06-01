@@ -107,8 +107,8 @@ class BaasGui(object):
     def get_services_box(self):
         services_box = VBox(False, 15)
         #set button height
-        height = HILDON_SIZE_THUMB_HEIGHT 
-        if len(self.state.services_active) < 4:
+        height = HILDON_SIZE_FINGER_HEIGHT 
+        if len(self.state.services_active) < 5:
             height = HILDON_SIZE_AUTO_HEIGHT
         for service in self.state.services:
             if service not in self.state.services_active:
@@ -369,9 +369,10 @@ class BaasGui(object):
                 self.lang_button.set_label(h_lang[1])
                 self.input_lang = h_lang
                 self.state.langs[self.input_command] = h_lang
-            else: 
+            elif self.input_command not in ['metacritic']: 
                 self.state.langs[self.input_command] = None
                 self.lang_button.set_label('language')
+
         self.history_dialog.destroy()
         self.trigger_request()
 
@@ -562,7 +563,7 @@ class BaasGui(object):
         lang_button.show_all()
         return lang_button
 
-    def input_translate(self, textentry):#, button):
+    def input_translate(self, textentry):
         ''' build input fields for delicious service '''
 
         textentry.set_wrap_mode(WRAP_CHAR)
@@ -577,9 +578,9 @@ class BaasGui(object):
 
         input_table = Table(2, 20, False)
         input_table.attach(textentry, 0, 12, 0, 2)
-        input_table.attach(self.button, 13, 20, 1, 2, FILL, FILL)#,0,5)
-        input_table.attach(in_button, 13, 16, 0, 1, FILL|EXPAND, FILL)#,0,5)
-        input_table.attach(dest_button, 17, 20, 0, 1, FILL|EXPAND, FILL)#,0,5)
+        input_table.attach(self.button, 13, 20, 1, 2, FILL, FILL)
+        input_table.attach(in_button, 13, 16, 0, 1, FILL|EXPAND, FILL)
+        input_table.attach(dest_button, 17, 20, 0, 1, FILL|EXPAND, FILL)
 
         return input_table
 
@@ -734,10 +735,56 @@ class BaasGui(object):
             elif self.result_data[active].get('link'):
                 self.open_link(self.result_data[active]['link'])
 
+    def detail_open_url(self, button, entry):
+        ''' opens selected search result in browser '''    
+        if entry.get('unescapedUrl'):
+            self.open_link(entry.get('unescapedUrl'))
+        elif entry.get('url'):
+            self.open_link(entry.get('url'))
+        elif entry.get('link'):
+            self.open_link(entry.get('link'))
+        self.detail_dialog.destroy()
+
+    def show_result_detail_dialog(self, selector, user_data):
+        active = selector.get_active(0)
+        current_selection = selector.get_current_text()
+        if current_selection and type(self.result_data[active]) == dict:
+            entry =  self.result_data[active]
+            text = '\n<span size="larger">%s</span>' % xmlify(htmlentities_decode(entry.get('title','#')))
+            content_field = 'content' if self.input_command not in ['news','web'] else 'abstract'
+            text += '\n\n<span>%s</span>' \
+                % xmlify(htmlentities_decode(entry.get(content_field,'')))
+            text += '\n<span size="x-small" style="italic" color="grey">%s</span>\n' % xmlify(self.get_link(entry))
+
+            label = Label()
+            label.set_markup(text)
+            label.set_line_wrap(True)
+            label.set_size_request(740,-1)
+
+            button = Button(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT,
+                BUTTON_ARRANGEMENT_VERTICAL, "Open url")
+            button.connect('clicked', self.detail_open_url, entry )
+            box2 = VBox(False)
+            box2.pack_start(label, True, True, 0)
+            box2.pack_start(button, False, False, 0)
+
+            parea = PannableArea()
+            parea.add_with_viewport(box2)
+            parea.set_size_request(750,340)
+            parea.show_all()
+
+            self.detail_dialog = Dialog()
+            self.detail_dialog.set_title(wording.get(self.input_command))
+            self.detail_dialog.set_transient_for(self.window)
+            self.detail_dialog.action_area.pack_start(parea, True, True, 0)
+            self.detail_dialog.show_all()
+
     def create_result_selector(self, entries=None):
         ''' renders a search reult list '''
+
         selector = TouchSelector()
-        selector.connect("changed", self.result_selection_changed)
+        #selector.connect("changed", self.result_selection_changed)
+        selector.connect("changed", self.show_result_detail_dialog)
 
         try: self.store.clear()
         except: pass
@@ -751,12 +798,14 @@ class BaasGui(object):
         else:
            self.store.append([0,'nothing found'])
         renderer = CellRendererText()
-        renderer.set_fixed_size(-1, 100)
 
-        # Add the column to the selector
-        column = selector.append_column(self.store, renderer, markup=1)
+
+
+        renderer.set_fixed_size(-1, 100)   
+        column = selector.append_column(self.store, renderer, markup=1)        
         column.set_property("text-column", 1)
         return selector
+
 
     def open_link(self, link):
         osso_c = osso.Context("osso_baas_receiver", "0.0.1", False)
