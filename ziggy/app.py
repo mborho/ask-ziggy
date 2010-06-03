@@ -57,14 +57,14 @@ Ask Ziggy - Search for news, weather, translations, reviews,\t\t
 <small>&#169; 2010 Martin Borho &lt;martin@borho.net&gt;\t\t\t\n
 License: GNU General Public License (GPL) Version 3
 Source: <span color="orange">http://github.com/mborho/ask-ziggy</span></small>
-"""          
+"""
 
 class BaasGui(object):
 
     def __init__(self):
         # auto connect deactivated
-        #self.check_connection() 
-        services = sorted(wording.items(), key=lambda(k,v):(v,k))        
+        #self.check_connection()
+        services = sorted(wording.items(), key=lambda(k,v):(v,k))
         self.services = services
         self.state = AppState([a[0] for a in services])
         self.lang = Languages()
@@ -94,7 +94,7 @@ class BaasGui(object):
         self.window.show()
 
     def get_services_main(self):
-        box = HBox(False, 5)        
+        box = HBox(False, 5)
         self.panned_window = PannableArea()
         self.panned_window.set_border_width(10)
         self.panned_window.show()
@@ -105,15 +105,17 @@ class BaasGui(object):
         return box
 
     def get_services_box(self):
-        services_box = VBox(False, 15)
+        services_box = VBox(False, 5)
         #set button height
-        height = HILDON_SIZE_FINGER_HEIGHT 
-        if len(self.state.services_active) < 5:
+        height = HILDON_SIZE_FINGER_HEIGHT
+        if len(self.state.services_active) <= 5:
             height = HILDON_SIZE_AUTO_HEIGHT
         for service in self.state.services:
             if service not in self.state.services_active:
                 continue
-            button = Button(height,BUTTON_ARRANGEMENT_VERTICAL, wording.get(service, service))
+            #button = Button(height,BUTTON_ARRANGEMENT_VERTICAL, wording.get(service, service))
+            button = GtkButton(HILDON_SIZE_AUTO_WIDTH | height)
+            button.set_label(wording.get(service, service))
             button.connect("clicked", self.show_service_window, service)
             services_box.pack_start(button, True, True, 0)
             button.show()
@@ -122,16 +124,22 @@ class BaasGui(object):
 
     def create_main_menu(self):
         menu = AppMenu()
-        about = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
-        about.set_label('About')
-        about.connect('clicked', self.menu_dialog,about_txt)
+
+        settings = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
+        settings.set_label('Settings')
+        settings.connect('clicked', self.menu_settings)
 
         services = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
         services.set_label('Services')
         services.connect('clicked', self.menu_services)
-
-        menu.append(about)
+        
+        about = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
+        about.set_label('About')
+        about.connect('clicked', self.menu_dialog,about_txt)
+        
+        menu.append(settings)
         menu.append(services)
+        menu.append(about)        
         menu.show_all()
         return menu
 
@@ -168,7 +176,7 @@ class BaasGui(object):
                 sbutton.set_active(True)
             sbutton.connect("toggled", self.menu_service_selected, s)
             services_opt.add(sbutton)
-            
+
             #up button
             button = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)
             button.set_size_request(10, 70)
@@ -176,7 +184,7 @@ class BaasGui(object):
                 button.set_label("↑")
                 button.connect("clicked", self.menu_service_sorted_up, s)
             services_opt.add(button)
-            
+
             # down button
             button = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)
             button.set_size_request(10, 70)
@@ -184,14 +192,14 @@ class BaasGui(object):
                 button.set_label("↓")
                 button.connect("clicked", self.menu_service_sorted_down, s)
             services_opt.add(button)
-            
+
             services_box.add(services_opt)
             x += 1
 
         parea.add_with_viewport(services_box)
-        parea.set_size_request(750, 320)    
+        parea.set_size_request(750, 320)
         return parea
-        
+
     def menu_service_sorted_up(self, button, service):
         current_pos = self.state.services.index(service)
         self.state.services.remove(service)
@@ -201,7 +209,7 @@ class BaasGui(object):
         self.service_dialog.action_area.add(self.menu_services_list)
         self.service_dialog.show_all()
         self.rebuild_start_screen()
-        
+
     def menu_service_sorted_down(self, button, service):
         current_pos = self.state.services.index(service)
         self.state.services.remove(service)
@@ -211,7 +219,7 @@ class BaasGui(object):
         self.service_dialog.action_area.add(self.menu_services_list)
         self.service_dialog.show_all()
         self.rebuild_start_screen()
-        
+
     def menu_service_selected(self, button, service):
         active = button.get_active()
         if active:
@@ -219,7 +227,7 @@ class BaasGui(object):
             self.state.services_active.insert(self.state.services.index(service),service)
             for s in self.state.services:
                 if s in self.state.services_active:
-                    services.append(s)                
+                    services.append(s)
             self.state.services_active = services
         else:
             self.state.services_active.remove(service)
@@ -231,7 +239,70 @@ class BaasGui(object):
         self.panned_window.add_with_viewport(self.services_box)
         self.panned_window.show()
         self.state.save()
+
+    def menu_settings(self, button):
+        self.settings_dialog = Dialog()
+        self.settings_dialog.set_title("Settings")
+        self.settings_dialog.set_transient_for(self.window)
         
+        # service check button
+        lbutton = CheckButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)
+        lbutton.set_label('open urls direct')
+        lbutton.set_size_request(750, 70)
+        lbutton.connect("toggled", self.menu_settings_toggled, 'direct_linkage')
+        lbutton.set_active(self.state.direct_linkage)
+        
+        # history len
+        len_box = self.menu_select_history_len()
+        
+        box2 = VBox(False)
+        box2.pack_start(len_box, False, False, 5)
+        box2.pack_start(lbutton, True, True, 5)
+
+        self.settings_dialog.action_area.add(box2)
+        self.settings_dialog.show_all()
+        
+    def menu_settings_toggled(self, button, setting):
+        active = button.get_active()
+        setattr(self.state, setting, active)
+        self.state.save()
+            
+    def menu_select_history_len(self):
+        ''' get a picker for history length '''
+        len_picker = PickerButton(HILDON_SIZE_FINGER_HEIGHT, BUTTON_ARRANGEMENT_VERTICAL)
+        selector = TouchSelector()
+        selector.set_column_selection_mode(TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE)
+        store = ListStore(str)
+        values = ["0", "5", "10", "15", "20", "25", "30"]
+        for txt in values: 
+            store.append([txt])            
+        renderer = CellRendererText()
+        renderer.set_fixed_size(-1, 100)
+        renderer.props.xalign = 0.5
+        
+        column = selector.append_column(store, renderer, markup=0)
+        column.set_property("text-column", 0)
+
+        len_picker.set_selector(selector)
+        len_picker.connect("value-changed", self.menu_settings_history_len)
+        len_picker.set_value(str(self.state.history_len))
+        current_val = str(self.state.history_len)
+        if current_val in values:
+            len_picker.set_active(values.index(current_val))
+                        
+        len_label = Label('Entries in history:')
+        
+        hbox = HBox(False)
+        hbox.pack_start(len_label, True, True, 0)
+        hbox.pack_start(len_picker, True, True, 0)
+        return hbox
+        
+    def menu_settings_history_len(self, picker):
+        choice = picker.get_value()
+        self.state.history_len = int(choice)
+        picker.set_value(choice)
+        self.state.save()
+
     def show_service_window(self, widget, service_name):
 
         self.input_command = service_name
@@ -282,7 +353,7 @@ class BaasGui(object):
         if self.input_command not in ["tlate"]:
             menu = self.create_service_menu()
             self.service_win.set_app_menu(menu)
-       
+
         # the results
         self.result_area = VBox(False, 5)
         self.table = Table(20, 1, False)
@@ -355,8 +426,8 @@ class BaasGui(object):
     def history_picked(self, treeview, selection, column):
         h_entry = self.state.history[self.input_command][selection[0]]
         (term, lang) = self.parse_term(h_entry)
-        self.entry.set_text(term)        
-        
+        self.entry.set_text(term)
+
         if self.input_command == "deli":
             if lang:
                 self.state.deli_pop = True
@@ -369,7 +440,7 @@ class BaasGui(object):
                 self.lang_button.set_label(h_lang[1])
                 self.input_lang = h_lang
                 self.state.langs[self.input_command] = h_lang
-            elif self.input_command not in ['metacritic']: 
+            elif self.input_command not in ['metacritic']:
                 self.state.langs[self.input_command] = None
                 self.lang_button.set_label('language')
 
@@ -445,7 +516,7 @@ class BaasGui(object):
         langs = self.lang.get(self.input_command)
         self.input_lang = langs[selector.get_active()]
         self.state.langs[self.input_command] = self.input_lang
-        
+
 
     def edition_selected(self, selector, user_data):
         ''' handles gnews edition selection '''
@@ -610,12 +681,12 @@ class BaasGui(object):
         return term.strip()
 
     def trigger_request(self):
-        self.button.emit('clicked')            
+        self.button.emit('clicked')
         self.button.emit('pressed')
-        
+
     def event_enter_key(self, widget, event):
-        ''' handles enter key ''' 
-        if event.hardware_keycode in [36,104]:                                 
+        ''' handles enter key '''
+        if event.hardware_keycode in [36,104]:
             self.trigger_request()
 
     def waiting_start(self,msg):
@@ -628,15 +699,15 @@ class BaasGui(object):
         self.state.buffers[self.input_command] = self.input_buffer
         if not self.state.history.get(self.input_command):
             self.state.history[self.input_command] = []
-        
+
         if self.term in self.state.history[self.input_command]:
             self.state.history[self.input_command].remove(self.term)
         self.state.history[self.input_command].insert(0,self.term)
-        self.state.history[self.input_command] =  self.state.history[self.input_command][0:10]
+        self.state.history[self.input_command] =  self.state.history[self.input_command][0:self.state.history_len]
         self.state.save()
 
     def ask_buddy(self):
-        self.waiting_start('msg')   
+        self.waiting_start('msg')
         self.result_data = None
         commando_func = pluginHnd.commands.get(self.input_command)
 
@@ -651,7 +722,7 @@ class BaasGui(object):
             self.term = self.prepare_term()
             result_msg = ''
             try:
-                result_msg = commando_func(self.term)                
+                result_msg = commando_func(self.term)
             except URLError, e:
                 hildon_banner_show_information(self.window, "",
                     "Request failed, timed out.")
@@ -677,8 +748,8 @@ class BaasGui(object):
             self.create_result_text(result_markup)
 
         self.result_area.add(self.result_output)
-        self.result_output.show()   
-        self.waiting_stop()   
+        self.result_output.show()
+        self.waiting_stop()
 
     def get_result_markup(self):
         """ returns pango formatted string """
@@ -736,7 +807,7 @@ class BaasGui(object):
                 self.open_link(self.result_data[active]['link'])
 
     def detail_open_url(self, button, entry):
-        ''' opens selected search result in browser '''    
+        ''' opens selected search result in browser '''
         if entry.get('unescapedUrl'):
             self.open_link(entry.get('unescapedUrl'))
         elif entry.get('url'):
@@ -761,8 +832,8 @@ class BaasGui(object):
             label.set_line_wrap(True)
             label.set_size_request(740,-1)
 
-            button = Button(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT,
-                BUTTON_ARRANGEMENT_VERTICAL, "Open url")
+            button = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)
+            button.set_label('Open url')
             button.connect('clicked', self.detail_open_url, entry )
             box2 = VBox(False)
             box2.pack_start(label, True, True, 0)
@@ -770,7 +841,7 @@ class BaasGui(object):
 
             parea = PannableArea()
             parea.add_with_viewport(box2)
-            parea.set_size_request(750,340)
+            parea.set_size_request(750,330)
             parea.show_all()
 
             self.detail_dialog = Dialog()
@@ -783,8 +854,10 @@ class BaasGui(object):
         ''' renders a search reult list '''
 
         selector = TouchSelector()
-        #selector.connect("changed", self.result_selection_changed)
-        selector.connect("changed", self.show_result_detail_dialog)
+        if self.state.direct_linkage:
+            selector.connect("changed", self.result_selection_changed)
+        else:
+            selector.connect("changed", self.show_result_detail_dialog)
 
         try: self.store.clear()
         except: pass
@@ -801,8 +874,8 @@ class BaasGui(object):
 
 
 
-        renderer.set_fixed_size(-1, 100)   
-        column = selector.append_column(self.store, renderer, markup=1)        
+        renderer.set_fixed_size(-1, 100)
+        column = selector.append_column(self.store, renderer, markup=1)
         column.set_property("text-column", 1)
         return selector
 

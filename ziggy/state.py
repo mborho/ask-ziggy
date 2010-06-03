@@ -19,6 +19,8 @@ class AppState(object):
         self.services = services
         self.services_active = services[0:]
         self.deli_pop = 0
+        self.direct_linkage = False
+        self.history_len = 10
         self.buffers = {}
         self.langs = {}
         self.tlate = {}
@@ -57,8 +59,9 @@ class AppState(object):
             f.close()
             data = simplejson.loads(json)
             self.history = data.get('history',{})
+            self.direct_linkage = data.get('direct_linkage', self.direct_linkage)
+            self.history_len = data.get('history_len', self.history_len)
             self.services_active = data.get('services_active',self.services_active) 
-            #self.services = data.get('services',self.services)
             saved_services = data.get('services',self.services)
             self.services = self.validate_services(saved_services)
             self.normalize_active_services()
@@ -66,7 +69,9 @@ class AppState(object):
             print "no file found"
         
     def save(self):
-        state = {'history':self.history, 'services_active': self.services_active, 'services':self.services}
+        state = {
+            'history':self.history, 'history_len': self.history_len, 'services_active': self.services_active, 
+            'services':self.services, 'direct_linkage': self.direct_linkage}
         f = open(self.config_file,'w')
         simplejson.dump(state, f)
         f.close()
