@@ -862,11 +862,15 @@ class BaasGui(object):
         current_selection = selector.get_current_text()
         if current_selection and type(self.result_data[active]) == dict:
             entry =  self.result_data[active]
-            text = '\n<span size="larger">%s</span>' % xmlify(htmlentities_decode(entry.get('title','#')))
+            published = self.get_pub_date(entry)
+                  
+            text = '\n<span size="larger">%s</span>\n' % xmlify(htmlentities_decode(entry.get('title','#')))
+            if published:
+                text += '<span size="x-small" style="italic" color="grey">%s</span>' % (xmlify(published))
             content_field = 'content' if self.input_command not in ['news','web'] else 'abstract'
-            text += '\n\n<span>%s</span>' \
+            text += '\n<span>%s</span>' \
                 % xmlify(htmlentities_decode(entry.get(content_field,'')))
-            text += '\n<span size="x-small" style="italic" color="grey">%s</span>\n' % xmlify(self.get_link(entry))
+            text += '\n<span size="x-small" style="italic" color="grey">%s</span>\n' % (xmlify(self.get_link(entry)))            
 
             label = Label()
             label.set_markup(text)
@@ -913,13 +917,10 @@ class BaasGui(object):
            self.store.append([0,'nothing found'])
         renderer = CellRendererText()
 
-
-
         renderer.set_fixed_size(-1, 100)
         column = selector.append_column(self.store, renderer, markup=1)
         column.set_property("text-column", 1)
         return selector
-
 
     def open_link(self, link):
         osso_c = osso.Context("osso_baas_receiver", "0.0.1", False)
@@ -956,3 +957,17 @@ class BaasGui(object):
     def delete_event(self, widget, event, data=None):
         main_quit()
         return False
+
+    def get_pub_date(self, entry):
+        published = ''
+        try:
+            if self.input_command == "gnews": 
+                published = entry.get('publishedDate')[0:17]
+            elif self.input_command == "deli": 
+                published = entry.get('pubDate')[0:17]
+            elif self.input_command == "news": 
+                from datetime import datetime
+                dt = datetime.strptime(entry.get('date'),'%Y/%m/%d')
+                published =  dt.strftime('%a, %d %b %Y')
+        except: pass 
+        return published
