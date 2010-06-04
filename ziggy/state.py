@@ -25,6 +25,7 @@ class AppState(object):
         self.langs = {}
         self.tlate = {}
         self.history = {}
+        self.default_langs = {}
         self.config_file = os.path.expanduser("~")+"/.ask-ziggy"
         self.load()    
 
@@ -61,6 +62,7 @@ class AppState(object):
             self.history = data.get('history',{})
             self.direct_linkage = data.get('direct_linkage', self.direct_linkage)
             self.history_len = data.get('history_len', self.history_len)
+            self.default_langs = data.get('default_langs', {})
             self.services_active = data.get('services_active',self.services_active) 
             saved_services = data.get('services',self.services)
             self.services = self.validate_services(saved_services)
@@ -71,7 +73,7 @@ class AppState(object):
     def save(self):
         state = {
             'history':self.history, 'history_len': self.history_len, 'services_active': self.services_active, 
-            'services':self.services, 'direct_linkage': self.direct_linkage}
+            'services':self.services, 'direct_linkage': self.direct_linkage, 'default_langs': self.default_langs,}
         f = open(self.config_file,'w')
         simplejson.dump(state, f)
         f.close()
