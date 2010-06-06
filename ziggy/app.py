@@ -240,7 +240,7 @@ class BaasGui(object):
         
         # service check button
         lbutton = CheckButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)
-        lbutton.set_label('open urls direct')
+        lbutton.set_label('open urls directly in browser')
         lbutton.set_size_request(750, 70)
         lbutton.connect("toggled", self.menu_settings_toggled, 'direct_linkage')
         lbutton.set_active(self.state.direct_linkage)
@@ -829,6 +829,8 @@ class BaasGui(object):
         if hasattr(self, 'result_text'):
             self.result_text.destroy()
         self.result_text = Label()
+        if self.input_command == "weather":
+            self.result_text.set_size_request(770,-1)
         self.result_text.set_justify(JUSTIFY_LEFT)
         self.result_text.set_line_wrap(True)
         self.result_text.set_markup(result_markup)
