@@ -424,10 +424,6 @@ class BaasGui(object):
         
     def clear_default_lang(self, button):
         self.state.default_langs[self.input_command] = None
-        self.state.langs[self.input_command] = None
-        self.input_lang = None
-        label_what = 'Language' if self.input_command != "gnews" else 'Edition'
-        self.lang_button.set_label(label_what)
         self.state.save()
         self.build_service_menu()
         
