@@ -491,11 +491,13 @@ class BaasGui(object):
             if lang:
                 h_lang = self.lang.get(self.input_command, short=lang)
                 self.lang_button.set_label(h_lang[1])
+                langs = self.lang.get(self.input_command)
+                self.lang_button.set_active(langs.index(h_lang))
                 self.input_lang = h_lang
                 self.state.langs[self.input_command] = h_lang
             elif self.input_command not in ['metacritic']:
                 self.state.langs[self.input_command] = None
-                self.lang_button.set_label('language')
+                self.lang_button.set_label('language')                
 
         self.history_dialog.destroy()
         self.trigger_request()
