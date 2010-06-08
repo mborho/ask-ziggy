@@ -426,7 +426,6 @@ class BaasGui(object):
         self.state.default_langs[self.input_command] = None
         self.state.langs[self.input_command] = None
         self.input_lang = None
-        self.lang_button.set_active(-1)
         label_what = 'Language' if self.input_command != "gnews" else 'Edition'
         self.lang_button.set_label(label_what)
         self.state.save()
