@@ -196,7 +196,7 @@ class BaasGui(object):
             x += 1
 
         parea.add_with_viewport(services_box)
-        parea.set_size_request(750, 320)
+        parea.set_size_request(750, 330)
         return parea
 
     def menu_service_sorted(self, button, service, mode):
@@ -374,43 +374,52 @@ class BaasGui(object):
         menu.append(c_button)
                 
         if self.input_command not in ['translate','metacritic','deli']:
-            self.menu_lang_button = self.menu_service_lang()
-            menu.append(self.menu_lang_button)
+            l_button = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
+            l_button.connect('clicked', self.menu_service_lang)
+            label_what = 'language' if self.input_command != "gnews" else 'edition'
+            default_lang =  self.state.default_langs.get(self.input_command)
+            if default_lang:
+                l_button.set_label('%s (default)' % default_lang[1])
+            else:
+                l_button.set_label('Set default '+ label_what)
+            menu.append(l_button)            
 
             if self.state.default_langs.get(self.input_command):
                 cl_button = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
                 cl_button.connect('clicked', self.clear_default_lang)
-                label_what = 'language' if self.input_command != "gnews" else 'edition'
                 cl_button.set_label('Clear default '+label_what)
                 menu.append(cl_button)
         
         menu.show_all()
         self.service_win.set_app_menu(menu)
 
-    def menu_service_lang(self):
-        lang_button = self.get_lang_selector(self.input_command)
+    def menu_service_lang(self, button):
+        self.service_lang_dialog = Dialog()
+        self.service_lang_dialog.set_title("Set default language for this service")
+        self.service_lang_dialog.set_transient_for(self.service_win)           
+        
+        lang_selector = self.get_lang_selector(self.input_command)
+        lang_selector.set_size_request(760, 330)
         default_lang =  self.state.default_langs.get(self.input_command)
         if default_lang:
             langs = self.lang.get(self.input_command)
-            lang_button.set_active(langs.index(tuple(default_lang)))
-            lang_button.set_label('%s (default)' % default_lang[1])
-        else:
-            label_what = 'language' if self.input_command != "gnews" else 'edition'
-            lang_button.set_label('Set default '+ label_what)
-        lang_button.connect("value-changed", self.menu_services_lang_selected,self.input_command)
-        lang_button.set_border_width(0)
-        lang_button.show_all()
-        return lang_button
+            lang_selector.set_active(0, langs.index(tuple(default_lang)))
+        lang_selector.center_on_selected()
+        lang_selector.connect("changed", self.menu_services_lang_selected)
+        self.service_lang_dialog.action_area.add(lang_selector)
+        self.service_lang_dialog.show_all()
         
     def menu_services_lang_selected(self, selector, user_data):
         ''' handles lang selection '''
         langs = self.lang.get(self.input_command)
-        default = langs[selector.get_active()]
+        default = langs[selector.get_active(0)]
         self.state.default_langs[self.input_command] = default
         self.state.langs[self.input_command] = default
         self.input_lang = default
         self.lang_button.set_label(default[1])
+        self.lang_button.set_active(selector.get_active(0))
         self.state.save()
+        self.service_lang_dialog.destroy()
         self.build_service_menu()
         
     def clear_default_lang(self, button):
@@ -459,8 +468,9 @@ class BaasGui(object):
         treeview.connect("row-activated", self.history_picked)
 
         parea.add(treeview)
-        parea.set_size_request(750, 320)
+        parea.set_size_request(750, 330)
         self.history_dialog = Dialog('History')
+        self.history_dialog.set_transient_for(self.service_win) 
         self.history_dialog.set_title(button.get_label())
         self.history_dialog.action_area.add(parea)
         self.history_dialog.show_all()
@@ -503,8 +513,6 @@ class BaasGui(object):
         dialog.show_all()
 
     def get_lang_selector(self, service):
-        button = PickerButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT,
-            BUTTON_ARRANGEMENT_HORIZONTAL)
         selector = TouchSelector()
         selector.set_column_selection_mode(TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE)
         store = ListStore(str, str);
@@ -514,12 +522,14 @@ class BaasGui(object):
         renderer.set_fixed_size(-1, 100)
         column = selector.append_column(store, renderer, text=1)
         column.set_property("text-column", 1)
-        renderer.props.xalign = 0.5
-        button.set_selector(selector)
-        return button
+        renderer.props.xalign = 0.5        
+        return selector
 
     def get_lang_button(self):
-        lang_button = self.get_lang_selector(self.input_command)
+        lang_button = PickerButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT,
+            BUTTON_ARRANGEMENT_HORIZONTAL)
+        selector = self.get_lang_selector(self.input_command)
+        lang_button.set_selector(selector)
         langs = self.lang.get(self.input_command)
         if self.state.langs.get(self.input_command):            
             lang_button.set_active(langs.index(self.state.langs[self.input_command]))
@@ -532,22 +542,23 @@ class BaasGui(object):
         return lang_button
 
     def get_edition_selector(self, service):
-        button = PickerButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT,
-            BUTTON_ARRANGEMENT_HORIZONTAL)
-        button.set_label("edition")
         selector = TouchSelector(text=True)
         for (short, name) in self.lang.get('gnews'):
             selector.append_text(name)
-        button.set_selector(selector)
-        return button
+        return selector
         
     def get_edition_button(self):
         """ builds button for google news language selection """
-        lang_button = self.get_edition_selector(self.input_command)
+        lang_button = PickerButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT,
+            BUTTON_ARRANGEMENT_HORIZONTAL)
+        selector = self.get_edition_selector(self.input_command)
+        lang_button.set_selector(selector)
 
         if self.state.langs.get(self.input_command):
             lang_button.set_active(self.lang.get('gnews').index(self.state.langs[self.input_command]))
             lang_button.set_label(self.state.langs[self.input_command][1])
+        else:
+            lang_button.set_label("edition")                        
         lang_button.connect("value-changed", self.edition_selected,self.input_command)
 
         lang_button.show_all()
@@ -862,7 +873,7 @@ class BaasGui(object):
     def show_result_detail_dialog(self, selector, user_data):
         active = selector.get_active(0)
         current_selection = selector.get_current_text()
-        if current_selection and type(self.result_data[active]) == dict:
+        if current_selection and self.result_data and type(self.result_data[active]) == dict:
             entry =  self.result_data[active]
             published = self.get_pub_date(entry)
                   
@@ -893,7 +904,7 @@ class BaasGui(object):
 
             self.detail_dialog = Dialog()
             self.detail_dialog.set_title(wording.get(self.input_command))
-            self.detail_dialog.set_transient_for(self.window)
+            self.detail_dialog.set_transient_for(self.service_win)
             self.detail_dialog.action_area.pack_start(parea, True, True, 0)
             self.detail_dialog.show_all()
 
