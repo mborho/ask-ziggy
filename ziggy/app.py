@@ -395,7 +395,8 @@ class BaasGui(object):
 
     def menu_service_lang(self, button):
         self.service_lang_dialog = Dialog()
-        self.service_lang_dialog.set_title("Set default language for this service")
+        label_what = 'language' if self.input_command != "gnews" else 'edition'
+        self.service_lang_dialog.set_title("Set default %s for this service" % label_what)
         self.service_lang_dialog.set_transient_for(self.service_win)           
         
         lang_selector = self.get_lang_selector(self.input_command)
