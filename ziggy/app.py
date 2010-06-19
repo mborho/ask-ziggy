@@ -36,6 +36,7 @@ pluginHnd = PluginLoader(config=False,format="raw")
 pluginHnd.load_plugins()
 pluginHnd.load_map()
 pluginHnd.load_help()
+pluginHnd.load_limits()
 
 wording = {
     'tlate':'Translation',
@@ -68,9 +69,12 @@ class BaasGui(object):
         self.services = services
         self.state = AppState([a[0] for a in services])
         self.lang = Languages()
+        self.term = None
         self.input_command = None
         self.input_buffer = None
         self.input_lang = None
+        self.input_page = 1
+        self.reload_results = None
         self.history_button = None
         self.lang_button = None
         self.service_dialog = None
@@ -300,6 +304,8 @@ class BaasGui(object):
 
         self.input_command = service_name
         self.input_buffer = ''
+        self.input_page = 1
+        self.reload_results = None
         self.output_result = 'result'
 
         self.service_win = StackableWindow()
@@ -729,6 +735,7 @@ class BaasGui(object):
             term = input_buffer + ' #'+self.state.langs[self.input_command][0]
         else:
             term = input_buffer
+
         print "term %s" % term
         return term.strip()
 
@@ -759,8 +766,15 @@ class BaasGui(object):
         self.state.save()
 
     def ask_buddy(self):
+
         self.waiting_start('msg')
-        self.result_data = None
+
+        if  self.reload_results is None:
+            self.input_page = 1
+
+        if self.input_page == 1:
+            self.result_data = None        
+
         commando_func = pluginHnd.commands.get(self.input_command)
 
         if self.input_command != 'tlate':
@@ -769,12 +783,19 @@ class BaasGui(object):
         if self.input_buffer == '':
             self.waiting_stop()
             return None
-
+        
         if commando_func:
-            self.term = self.prepare_term()
+            term = self.prepare_term()
+            if term != self.term:
+                self.input_page = 1
+                self.term = term
+
+            if self.input_page > 1:
+                term = '%s [%d]' % (self.term, self.input_page)
+   
             result_msg = ''
             try:
-                result_msg = commando_func(self.term)
+                result_msg = commando_func(term)
             except URLError, e:
                 hildon_banner_show_information(self.window, "",
                     "Request failed, timed out.")
@@ -785,21 +806,34 @@ class BaasGui(object):
                 hildon_banner_show_information(self.window, "", str(e))
             except Exception, e:
                 hildon_banner_show_information(self.window, "", "Error occured.")
-            self.result_data = result_msg
+
+            ## check result page
+            if self.input_page > 1 and self.reload_results:
+                pass
+                #self.result_data = self.result_data + result_msg
+            else:
+                self.result_data = result_msg
+
             if self.term:
                 self.update_state()
         else:
             self.result_data = [{'title':'Uups, commando not known\n'}]
 
-        if hasattr(self, 'result_output'):
+        if hasattr(self, 'result_output') and self.input_page == 1:
             self.result_output.destroy()
         if self.input_command not in ['tlate','weather']:
-            self.result_output = self.create_result_selector(self.result_data)
+            if self.input_page > 1:
+                self.append_results_to_selector(result_msg)
+                self.result_data = self.result_data + result_msg
+            else:
+                self.result_output = self.create_result_selector(self.result_data)
         else:
             result_markup = self.get_result_markup()
             self.create_result_text(result_markup)
 
-        self.result_area.add(self.result_output)
+        if self.input_page == 1:
+            self.result_area.add(self.result_output)        
+
         self.result_output.show()
         self.waiting_stop()
 
@@ -870,10 +904,18 @@ class BaasGui(object):
             self.open_link(entry.get('link'))
         self.detail_dialog.destroy()
 
-    def show_result_detail_dialog(self, selector, user_data):
-        active = selector.get_active(0)
-        current_selection = selector.get_current_text()
-        if current_selection and self.result_data and type(self.result_data[active]) == dict:
+    def show_result_detail_dialog(self, treeview, selection, column):
+        active = selection[0]       
+        if active == len(self.result_data):
+            # set new row text
+            sel_iter = self.store.get_iter((self.input_page) * pluginHnd.limits.get(self.input_command,1))
+            loading_msg = self.build_next_results_markup(' . . . loading next results')
+            self.store.set_value(sel_iter, 1, loading_msg)
+            # do a reload of the next results
+            self.input_page += 1
+            self.reload_results = True
+            self.trigger_request()
+        elif self.result_data and type(self.result_data[active]) == dict:
             entry =  self.result_data[active]
             published = self.get_pub_date(entry)
                   
@@ -908,14 +950,56 @@ class BaasGui(object):
             self.detail_dialog.action_area.pack_start(parea, True, True, 0)
             self.detail_dialog.show_all()
 
+        parea = PannableArea()
+        treeview = GtkTreeView(HILDON_UI_MODE_NORMAL)
+        lstore = ListStore(str, str);
+        history = self.state.history.get(self.input_command,[])
+        for e in history:
+            (term, lang) = self.parse_term(e)
+            sel_text = term
+            if lang and self.input_command != 'deli':
+                sel_text += " <small>/ %s</small>" % self.lang.get(self.input_command, short=lang)[1]
+            elif lang:
+                sel_text += " <small>/ most popular</small>"
+            lstore.append([str(e),sel_text])
+        treeview.set_model(lstore)
+        renderer = CellRendererText()
+        column = TreeViewColumn('title', renderer, markup=1)
+        column.set_property("expand", True)
+        treeview.append_column(column)
+        treeview.connect("row-activated", self.history_picked)
+
+    def build_next_results_markup(self, text):
+        return '<span font_stretch="expanded" style="italic" color="grey">%s</span>' % text
+
+    def append_results_to_selector(self, entries=None):
+        ''' renders a search reult list '''
+        self.reload_results = None
+        position = len(self.result_data)
+        self.store.remove(self.store.get_iter(len(self.store)-1))
+        if entries and type(entries) == list:
+            for entry in entries:
+                title = '<span>%s</span>' % xmlify(htmlentities_decode(entry.get('title','#')))
+                title += '\n<span size="x-small" style="italic">%s</span>' % xmlify(self.get_link(entry))
+                self.store.insert(position, [0,title])
+                position += 1
+            if self.input_page <= 7 and self.input_command not in ['deli','tlate','weather'] \
+                and  len(entries) == pluginHnd.limits.get(self.input_command):
+                    self.store.insert(position, [0,self.build_next_results_markup(' load next results . . .')])
+        else:
+           self.store.insert(position, [0,'nothing more found'])
+
+        #self.result_selector.scroll_to_cell(len(self.result_data))
+
     def create_result_selector(self, entries=None):
         ''' renders a search reult list '''
-
-        selector = TouchSelector()
+        self.reload_results = None
+        parea = PannableArea()
+        self.result_selector = GtkTreeView(HILDON_UI_MODE_NORMAL)
         if self.state.direct_linkage:
-            selector.connect("changed", self.result_selection_changed)
+            self.result_selector.connect("row-activated", self.result_selection_changed)
         else:
-            selector.connect("changed", self.show_result_detail_dialog)
+            self.result_selector.connect("row-activated", self.show_result_detail_dialog)
 
         try: self.store.clear()
         except: pass
@@ -926,14 +1010,21 @@ class BaasGui(object):
                 title = '<span>%s</span>' % xmlify(htmlentities_decode(entry.get('title','#')))
                 title += '\n<span size="x-small" style="italic">%s</span>' % xmlify(self.get_link(entry))
                 self.store.append([0,title])
+            if self.input_page <= 7 and self.input_command not in ['deli','tlate','weather'] \
+                and  len(entries) == (self.input_page * pluginHnd.limits.get(self.input_command,1)):
+                    self.store.append([0, self.build_next_results_markup(' load next results . . .')])
         else:
            self.store.append([0,'nothing found'])
-        renderer = CellRendererText()
 
-        renderer.set_fixed_size(-1, 100)
-        column = selector.append_column(self.store, renderer, markup=1)
-        column.set_property("text-column", 1)
-        return selector
+        self.result_selector.set_model(self.store)
+        renderer = CellRendererText()
+        column = TreeViewColumn('title', renderer, markup=1)
+        column.set_property("expand", True)
+        self.result_selector.append_column(column)
+
+        parea.add(self.result_selector)
+        parea.show_all()
+        return parea
 
     def open_link(self, link):
         osso_c = osso.Context("osso_baas_receiver", "0.0.1", False)
