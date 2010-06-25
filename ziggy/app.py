@@ -985,7 +985,7 @@ class BaasGui(object):
                 position += 1
             if self.input_page <= 7 and self.input_command not in ['deli','tlate','weather'] \
                 and  len(entries) == pluginHnd.limits.get(self.input_command):
-                    self.store.insert(position, [0,self.build_next_results_markup(' load next results . . .')])
+                    self.store.insert(position, [0,self.build_next_results_markup(' click here for next results ')])
         else:
            self.store.insert(position, [0,'nothing more found'])
 
@@ -1012,7 +1012,7 @@ class BaasGui(object):
                 self.store.append([0,title])
             if self.input_page <= 7 and self.input_command not in ['deli','tlate','weather'] \
                 and  len(entries) == (self.input_page * pluginHnd.limits.get(self.input_command,1)):
-                    self.store.append([0, self.build_next_results_markup(' load next results . . .')])
+                    self.store.append([0, self.build_next_results_markup('  click here for next results ')])
         else:
            self.store.append([0,'nothing found'])
 
