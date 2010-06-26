@@ -1,10 +1,13 @@
+# -*- coding: utf-8 -*-
 import sys
 import socket
+import os.path
 from PyQt4 import *
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from ziggy.languages import Languages
 from ziggy.state import AppState
+from ziggy import styles
 from baas.core.plugins import PluginLoader
 from baas.core.helpers import strip_tags, htmlentities_decode, xmlify
 
@@ -12,6 +15,12 @@ from baas.core.helpers import strip_tags, htmlentities_decode, xmlify
 # set timeout to 10 seconds
 timeout = 10
 socket.setdefaulttimeout(timeout)
+
+APP_WIDTH = 800
+APP_HEIGHT = 480
+DIALOG_HEIGHT = 350
+
+CSS_FILE = os.path.dirname(os.path.abspath(__file__))+'/ziggy.css'
 
 pluginHnd = PluginLoader(config=False,format="raw")
 pluginHnd.load_plugins()
@@ -55,80 +64,57 @@ class ResultListModel(QAbstractListModel):
         else: 
             return QVariant()
 
-class ZiggyWindow(QMainWindow):#QtGui.QWidget):
+class ZiggyWindow(QMainWindow):
     def __init__(self):
-        services = sorted(wording.items(), key=lambda(k,v):(v,k))        
+        services = sorted(wording.items(), key=lambda(k,v):(v,k))
         self.services = services
         self.state = AppState([a[0] for a in services])
         self.lang = Languages()
+        self.term = None
         self.inputCommand = None
         self.inputBuffer = None
         self.inputLang = None
-        self.historyButton = None
+        self.inputPage = 1
+        self.reload_results = None
+        self.history_button = None
         self.langButton = None
-        self.resultData = None
-
+        self.langDialog = None
+        self.service_dialog = None
+        
         QMainWindow.__init__(self)
+        self.setStyleSheet(styles.main_style)
         self.setAttribute(Qt.WA_Maemo5StackedWindow)
         self.main = QWidget(self)
-        #self.main.setAttribute(Qt.WA_Maemo5StackedWindow)
+        #self.main.setStyleSheet(styles.main_style)
 
         self.setCentralWidget(self.main)
         self.getServicesMain()
 
-    def getServicesMain(self):
-        grid = QGridLayout(self.main)
-
-        j = 0
-        pos = [(0, 0), (0, 1), 
-                (1, 0), (1, 1),
-                (2, 0), (2, 1),
-                (3, 0), (3, 1),
-                (4, 0), (4, 1),]
-
-        for short in self.state.services_active:
-            button = QPushButton(wording[short])
-            #button.setAttribute(Qt.WA_Maemo5StackedWindow)
-            self.connect(button, SIGNAL("clicked()"), self.__getattribute__('service%s' % short.capitalize()))
-            grid.addWidget(button, pos[j][0], pos[j][1])
-            j = j + 1
-    
-    def serviceGnews(self):
-        self.serviceChoosen('gnews')
-
-    def serviceGweb(self):
-        self.serviceChoosen('gweb')
-
-    def serviceTlate(self):
-        self.serviceChoosen('tlate')
-
-    def serviceWeb(self):
-        self.serviceChoosen('web')
-
-    def serviceNews(self):
-        self.serviceChoosen('news')
-
-    def serviceWikipedia(self):
-        self.serviceChoosen('wikipedia')
-
-    def serviceImdb(self):
-        self.serviceChoosen('imdb')
-
-    def serviceMetacritic(self):
-        self.serviceChoosen('metacritic')
-
-    def serviceWeather(self):
-        self.serviceChoosen('weather')
-
-    def serviceDeli(self):
-        self.serviceChoosen('deli')
-
+    def getServicesMain(self):        
+        #main = QWidget(self.main)
+        self.main.setMinimumSize(APP_WIDTH,0)         
+        vbox = QVBoxLayout(self.main)    
+        signalMapper = QSignalMapper(self)  
+        for service in self.state.services:
+            if service not in self.state.services_active:
+                continue
+            button = QPushButton(wording[service])
+            button.setStyleSheet(styles.service_list_button)
+            signalMapper.setMapping(button, self.state.services_active.index(service)) 
+            button.clicked.connect(signalMapper.map)
+            vbox.addWidget(button)
+        signalMapper.mapped.connect(self.serviceChoosen) 
+        
+        self.sa = QScrollArea(self)
+        self.sa.setWidget(self.main)
+        self.setCentralWidget(self.sa) 
+        
     def serviceChoosen(self, service):
-        self.inputCommand = service
+        self.inputCommand = self.state.services_active[service]
 
         stackwindow = QMainWindow(self.main)
         stackwindow.setAttribute(Qt.WA_Maemo5StackedWindow)
-        stackwindow.setWindowTitle(wording[service])
+        stackwindow.setWindowTitle(wording[self.inputCommand])
 
         widget = QWidget(self)
         stackwindow.setCentralWidget(widget)
@@ -137,40 +123,57 @@ class ZiggyWindow(QMainWindow):#QtGui.QWidget):
         self.connect(self.goButton, SIGNAL("clicked()"), self.askBuddy)
 
         self.inputField = QLineEdit()
-
+        self.inputField.setStyleSheet(styles.qline_edit);
         frame = QFrame(widget)
         self.grid = QGridLayout(widget)
-        #grid.setSpacing(10)
-
         self.grid.addWidget(self.inputField, 1, 0)
-        self.grid.addWidget(self.goButton, 1, 1)
+        if self.inputCommand not in ['tlate','metacritic']:
+            if self.state.langs.get(self.inputCommand):
+                lButtonLabel = self.state.langs.get(self.inputCommand)[1].decode('utf-8')
+            else:
+                lButtonLabel = self.labelWhat()
+            self.langButton = QPushButton(lButtonLabel)
+            x = lambda: self.getLangButton(self.inputCommand)
+            self.connect(self.langButton, SIGNAL("clicked()"), x)
+            self.grid.addWidget(self.langButton, 1, 1)
+            self.grid.addWidget(self.goButton, 1, 2)
+        else:
+            self.grid.addWidget(self.goButton, 1, 1)
         
-        self.resultWidget = QWidget(self)
+        
+        
+        self.resultWidget = QWidget(self)        
         self.grid.addWidget(self.resultWidget, 2, 0, 2 ,2)
 
         stackwindow.show()
+    
+    def getLangButton(self, service):
+        self.langDialog = QDialog(self.main)        
+        self.langDialog.setWindowTitle('Choose your %s' % self.labelWhat())
+        self.langDialog.setModal(True)
+        lw = QListWidget(self.langDialog)
+        lw.setMinimumSize(APP_WIDTH,DIALOG_HEIGHT)     
+        scrollTo = None
+        for (short, name) in self.lang.get(service):
+            le = QListWidgetItem(lw, type=lw.count())
+            if self.state.langs.get(self.inputCommand) \
+                and short == self.state.langs.get(self.inputCommand)[0]:
+                    le.setSelected(True)
+                    scrollTo = le
+            le.setText(name.decode('utf-8'))
+            le.setTextAlignment(Qt.AlignCenter)
+        if scrollTo:
+            lw.scrollToItem(scrollTo)
+        self.connect(lw, SIGNAL("itemClicked(QListWidgetItem *)"), self.getLangSelected)
+        self.langDialog.show()
 
-    def foo(self):
-        stackwindow = StackedWindow(self.main)
-        stackwindow.setWindowTitle(wording[service])
-
-        self.goButton = QPushButton("go")
-        self.connect(self.goButton, SIGNAL("clicked()"), self.askBuddy)
-
-        self.inputField = QLineEdit()
-
-        frame = QFrame(stackwindow.widget)
-        self.grid = QGridLayout(stackwindow.widget)
-        #grid.setSpacing(10)
-
-        self.grid.addWidget(self.inputField, 1, 0)
-        self.grid.addWidget(self.goButton, 1, 1)
+    def getLangSelected(self, button):
+        clicked = button.type()
+        self.inputLang = self.lang.get(self.inputCommand)[clicked]
+        self.state.langs[self.inputCommand] = self.inputLang
+        self.langButton.setText(self.inputLang[1].decode('utf-8'))
+        self.langDialog.close()
         
-        self.resultWidget = QWidget(self)
-        self.grid.addWidget(self.resultWidget, 2, 0, 2 ,2)
-
-        stackwindow.show()
-
     def askBuddy(self):
         
         print self.inputCommand
@@ -238,36 +241,30 @@ class ZiggyWindow(QMainWindow):#QtGui.QWidget):
             term = inputBuffer + ' #'+self.state.langs[self.inputCommand][0]
         else:
             term = inputBuffer
+
         print "term %s" % term
         return term.strip()
-
+        
     def createResultSelector(self):
         listData = []
         self.grid.removeWidget(self.resultWidget)
         self.resultWidget = QWidget(self)
-        self.grid.addWidget(self.resultWidget, 2, 0, 2 ,2)
+        self.resultWidget.setMinimumSize(APP_WIDTH,0)
+        self.resultWidget.setStyleSheet(styles.main_style)
+        self.grid.addWidget(self.resultWidget, 2, 0, 2,3)
         if self.resultData and type(self.resultData) == list:
             for entry in self.resultData:
                 listData.append(xmlify(htmlentities_decode(entry.get('title','#'))))
         lm = ResultListModel(listData, self)
-        lv = QListView()
+        lv = QListView()        
         lv.setModel(lm)
         layout = QVBoxLayout(self.resultWidget)
         layout.addWidget(lv) 
         self.resultWidget.show()
-
-    def buttonPushed(self):
-        d = QDialog(self)
-        vbox = QVBoxLayout()
-        l = QLabel("Hi there. You clicked a button!")
-        vbox.addWidget(l)
-        b = QPushButton("Close window")
-        self.connect(b, SIGNAL("clicked()"), d.close)
-        vbox.addWidget(b)
-        d.setLayout(vbox)
-        d.show()
-
-
+        
+    def labelWhat(self):
+        return 'language' if self.inputCommand != "gnews" else 'edition'
+        
 if __name__ == '__main__':    
     app = QApplication(sys.argv)
     w = ZiggyWindow()
