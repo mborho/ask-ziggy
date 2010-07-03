@@ -77,6 +77,7 @@ class BaasGui(object):
         self.reload_results = None
         self.history_button = None
         self.lang_button = None
+        self.tlate_buttons = {'tlate_to':None,'tlate_from':None}
         self.service_dialog = None
         set_application_name("Ask Ziggy")
 
@@ -355,8 +356,7 @@ class BaasGui(object):
                     self.state.langs[self.input_command] = default
             input_box = self.input_websearch(self.entry)
 
-        if self.input_command not in ["tlate"]:
-            self.build_service_menu()
+        self.build_service_menu()
 
         # the results
         self.result_area = VBox(False, 5)
@@ -368,29 +368,36 @@ class BaasGui(object):
         self.service_win.show_all()
 
     def build_service_menu(self):
-        menu = AppMenu()        
-        h_button = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
-        h_button.connect('clicked', self.get_history_list)
-        h_button.set_label('History')
-        menu.append(h_button)
-        
-        c_button = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
-        c_button.connect('clicked', self.clear_history_list)
-        c_button.set_label('Clear history')
-        menu.append(c_button)
+        menu = AppMenu()
+        if self.input_command != 'tlate':
+            h_button = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
+            h_button.connect('clicked', self.get_history_list)
+            h_button.set_label('History')
+            menu.append(h_button)
+            
+            c_button = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
+            c_button.connect('clicked', self.clear_history_list)
+            c_button.set_label('Clear history')
+            menu.append(c_button)
                 
-        if self.input_command not in ['translate','metacritic','deli']:
+        if self.input_command not in ['metacritic','deli']:
             l_button = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
             l_button.connect('clicked', self.menu_service_lang)
             label_what = 'language' if self.input_command != "gnews" else 'edition'
-            default_lang =  self.state.default_langs.get(self.input_command)
+            if self.input_command != 'tlate':
+                label_what = 'language' if self.input_command != "gnews" else 'edition'
+                cmd_name = self.input_command  
+            else: 
+                label_what = 'target language'
+                cmd_name = 'tlate_to'                
+            default_lang =  self.state.default_langs.get(cmd_name)
             if default_lang:
                 l_button.set_label('%s (default)' % default_lang[1])
             else:
                 l_button.set_label('Set default '+ label_what)
             menu.append(l_button)            
 
-            if self.state.default_langs.get(self.input_command):
+            if self.state.default_langs.get(cmd_name):
                 cl_button = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
                 cl_button.connect('clicked', self.clear_default_lang)
                 cl_button.set_label('Clear default '+label_what)
@@ -401,36 +408,54 @@ class BaasGui(object):
 
     def menu_service_lang(self, button):
         self.service_lang_dialog = Dialog()
-        label_what = 'language' if self.input_command != "gnews" else 'edition'
-        self.service_lang_dialog.set_title("Set default %s for this service" % label_what)
-        self.service_lang_dialog.set_transient_for(self.service_win)           
-        
-        lang_selector = self.get_lang_selector(self.input_command)
+        self.service_lang_dialog.set_transient_for(self.service_win)                                   
+        if self.input_command != 'tlate':
+            label_what = 'language' if self.input_command != "gnews" else 'edition'
+            dialog_title = "Set default %s for this service" % label_what
+            cmd_name = self.input_command  
+            lang_selector = self.get_lang_selector(self.input_command)
+        else: 
+            cmd_name = 'tlate_to'
+            lang_selector = self.get_tlate_selector(cmd_name)        
+            dialog_title = "Set default target language for translations"
         lang_selector.set_size_request(760, 330)
-        default_lang =  self.state.default_langs.get(self.input_command)
+        default_lang =  self.state.default_langs.get(cmd_name)
         if default_lang:
-            langs = self.lang.get(self.input_command)
+            langs = self.lang.get(cmd_name)
             lang_selector.set_active(0, langs.index(tuple(default_lang)))
         lang_selector.center_on_selected()
         lang_selector.connect("changed", self.menu_services_lang_selected)
+        self.service_lang_dialog.set_title(dialog_title)
         self.service_lang_dialog.action_area.add(lang_selector)
         self.service_lang_dialog.show_all()
         
     def menu_services_lang_selected(self, selector, user_data):
         ''' handles lang selection '''
-        langs = self.lang.get(self.input_command)
+        if self.input_command == 'tlate':
+            cmd_name = 'tlate_to'
+        else:
+            cmd_name = self.input_command
+        langs = self.lang.get(cmd_name)            
         default = langs[selector.get_active(0)]
-        self.state.default_langs[self.input_command] = default
-        self.state.langs[self.input_command] = default
+        self.state.default_langs[cmd_name] = default
+        self.state.langs[cmd_name] = default
         self.input_lang = default
-        self.lang_button.set_label(default[1])
-        self.lang_button.set_active(selector.get_active(0))
+        if self.input_command == 'tlate':
+            lang_button = self.tlate_buttons[cmd_name]
+        else:
+            lang_button = self.lang_button
+        lang_button.set_label(default[1])
+        lang_button.set_active(selector.get_active(0))
         self.state.save()
         self.service_lang_dialog.destroy()
         self.build_service_menu()
         
     def clear_default_lang(self, button):
-        self.state.default_langs[self.input_command] = None
+        if self.input_command == 'tlate':
+            cmd_name = 'tlate_to'
+        else:
+            cmd_name = self.input_command
+        self.state.default_langs[cmd_name] = None
         self.state.save()
         self.build_service_menu()
         
@@ -663,20 +688,13 @@ class BaasGui(object):
         else:
             self.state.tlate[token] = self.lang.get('tlate_to', index=index)
 
-    def get_tlate_button(self, label, token):
-        """ builds button for language selection """
-        lang_button = PickerButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT,
-            BUTTON_ARRANGEMENT_HORIZONTAL)
-
+    def get_tlate_selector(self, token_name):
         selector = TouchSelector()
         selector.set_column_selection_mode(TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE)
-
         store = ListStore(str, str);
-        if token == "@":
+        if token_name == "tlate_from":
             store.append(['','auto'])
-            glang_tlate = self.lang.get('tlate_to')
-        else:
-            glang_tlate = self.lang.get('tlate_from')
+        glang_tlate = self.lang.get(token_name)            
         for (short, name) in glang_tlate:
             store.append([short,name])
         renderer = CellRendererText()
@@ -685,12 +703,28 @@ class BaasGui(object):
         column = selector.append_column(store, renderer, text=1)
         column.set_property("text-column", 1)
         renderer.props.xalign = 0.5
-
-        lang_button.set_selector(selector)
-        lang_button.set_label(label)
-        lang_button.connect("value-changed", self.tlate_selected, token)
-        lang_button.show_all()
-        return lang_button
+        return selector
+        
+    def get_tlate_button(self, label, token):
+        """ builds button for language selection """
+        token_name = 'tlate_from' if token == "@" else 'tlate_to'            
+        selector = self.get_tlate_selector(token_name)
+        self.tlate_buttons[token_name] = PickerButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT,
+            BUTTON_ARRANGEMENT_HORIZONTAL)
+        self.tlate_buttons[token_name].set_selector(selector)
+        self.tlate_buttons[token_name].set_label(label)
+        if self.state.tlate.get(token):
+            active_index = self.lang.get(token_name).index(self.state.tlate[token])
+            if token == "@": active_index += 1                
+            self.tlate_buttons[token_name].set_active(active_index)
+        elif self.state.default_langs.get(token_name):
+            default_lang = tuple(self.state.default_langs[token_name])
+            self.state.tlate[token] = default_lang
+            active_index = self.lang.get(token_name).index(default_lang)
+            self.tlate_buttons[token_name].set_active(active_index)
+        self.tlate_buttons[token_name].connect("value-changed", self.tlate_selected, token)
+        self.tlate_buttons[token_name].show_all()
+        return self.tlate_buttons[token_name]
 
     def input_translate(self, textentry):
         ''' build input fields for delicious service '''
