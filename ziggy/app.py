@@ -819,7 +819,7 @@ class BaasGui(object):
                     raise(e)
             except Exception, e:
                 raise(e)
-        return ''
+        return []
 
     def ask_buddy(self):
 
@@ -849,7 +849,7 @@ class BaasGui(object):
             if self.input_page > 1:
                 term = '%s [%d]' % (self.term, self.input_page)
    
-            result_msg = ''
+            result_msg = []
             try:
                 result_msg = self.do_request(commando_func, term)
             except URLError, e:
@@ -1005,25 +1005,6 @@ class BaasGui(object):
             self.detail_dialog.set_transient_for(self.service_win)
             self.detail_dialog.action_area.pack_start(parea, True, True, 0)
             self.detail_dialog.show_all()
-
-        parea = PannableArea()
-        treeview = GtkTreeView(HILDON_UI_MODE_NORMAL)
-        lstore = ListStore(str, str);
-        history = self.state.history.get(self.input_command,[])
-        for e in history:
-            (term, lang) = self.parse_term(e)
-            sel_text = term
-            if lang and self.input_command != 'deli':
-                sel_text += " <small>/ %s</small>" % self.lang.get(self.input_command, short=lang)[1]
-            elif lang:
-                sel_text += " <small>/ most popular</small>"
-            lstore.append([str(e),sel_text])
-        treeview.set_model(lstore)
-        renderer = CellRendererText()
-        column = TreeViewColumn('title', renderer, markup=1)
-        column.set_property("expand", True)
-        treeview.append_column(column)
-        treeview.connect("row-activated", self.history_picked)
 
     def build_next_results_markup(self, text):
         return '<span font_stretch="expanded" style="italic" color="grey">%s</span>' % text
