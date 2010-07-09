@@ -28,8 +28,7 @@ from hildon import Program, StackableWindow, PannableArea, Button, AppMenu, GtkB
 from hildon import hildon_banner_show_information, hildon_gtk_window_set_progress_indicator, TouchSelector
 from hildon import  BUTTON_ARRANGEMENT_VERTICAL, BUTTON_ARRANGEMENT_HORIZONTAL, TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE
 
-# set timeout to 15 seconds
-timeout = 15
+timeout = 8
 socket.setdefaulttimeout(timeout)
 
 pluginHnd = PluginLoader(config=False,format="raw")
@@ -801,6 +800,27 @@ class BaasGui(object):
         self.state.history[self.input_command] =  self.state.history[self.input_command][0:self.state.history_len]
         self.state.save()
 
+    def do_request(self, func, term):
+        for i in range(0,2):
+            try:
+               result = func(term)
+               return result
+            except URLError, e:
+                if i < 1:
+                    print "urllib2 timeout, retrying"
+                    pass
+                else:
+                    raise(e)
+            except socket.timeout, e:
+                if i < 1:
+                    print "socket timeout, retrying"
+                    pass
+                else:
+                    raise(e)
+            except Exception, e:
+                raise(e)
+        return ''
+
     def ask_buddy(self):
 
         self.waiting_start('msg')
@@ -831,7 +851,7 @@ class BaasGui(object):
    
             result_msg = ''
             try:
-                result_msg = commando_func(term)
+                result_msg = self.do_request(commando_func, term)
             except URLError, e:
                 hildon_banner_show_information(self.window, "",
                     "Request failed, timed out.")
