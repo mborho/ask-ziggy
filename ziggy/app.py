@@ -717,11 +717,13 @@ class BaasGui(object):
             active_index = self.lang.get(token_name).index(self.state.tlate[token])
             if token == "@": active_index += 1                
             self.tlate_buttons[token_name].set_active(active_index)
+            self.tlate_buttons[token_name].set_label(self.state.tlate[token][1])
         elif self.state.default_langs.get(token_name):
             default_lang = tuple(self.state.default_langs[token_name])
             self.state.tlate[token] = default_lang
             active_index = self.lang.get(token_name).index(default_lang)
             self.tlate_buttons[token_name].set_active(active_index)
+            self.tlate_buttons[token_name].set_label(default_lang[1])
         self.tlate_buttons[token_name].connect("value-changed", self.tlate_selected, token)
         self.tlate_buttons[token_name].show_all()
         return self.tlate_buttons[token_name]
