@@ -28,8 +28,8 @@ from hildon import Program, StackableWindow, PannableArea, Button, AppMenu, GtkB
 from hildon import hildon_banner_show_information, hildon_gtk_window_set_progress_indicator, TouchSelector
 from hildon import  BUTTON_ARRANGEMENT_VERTICAL, BUTTON_ARRANGEMENT_HORIZONTAL, TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE
 
-# set timeout to 10 seconds
-timeout = 10
+# set timeout to 15 seconds
+timeout = 15
 socket.setdefaulttimeout(timeout)
 
 pluginHnd = PluginLoader(config=False,format="raw")
