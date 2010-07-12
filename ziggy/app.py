@@ -22,7 +22,7 @@ from baas.core.plugins import PluginLoader
 from baas.core.helpers import strip_tags, htmlentities_decode, xmlify
 from gtk import set_application_name, HBox, VBox, Label, Dialog, gdk, TextBuffer, Table, ListStore, CellRendererText, TreeViewColumn, main_quit
 from gtk import DIALOG_MODAL, DIALOG_DESTROY_WITH_PARENT, STOCK_NO, RESPONSE_REJECT, STOCK_OK, RESPONSE_ACCEPT, HILDON_UI_MODE_NORMAL
-from gtk import HILDON_SIZE_THUMB_HEIGHT, HILDON_SIZE_AUTO_HEIGHT, HILDON_SIZE_AUTO_WIDTH, HILDON_SIZE_FINGER_HEIGHT, WRAP_CHAR
+from gtk import HILDON_SIZE_THUMB_HEIGHT, HILDON_SIZE_AUTO_HEIGHT, HILDON_SIZE_AUTO_WIDTH, HILDON_SIZE_FINGER_HEIGHT, WRAP_WORD
 from gtk import FILL, EXPAND, JUSTIFY_LEFT
 from hildon import Program, StackableWindow, PannableArea, Button, AppMenu, GtkButton, CheckButton, Entry, TextView, GtkTreeView, PickerButton
 from hildon import hildon_banner_show_information, hildon_gtk_window_set_progress_indicator, TouchSelector
@@ -730,7 +730,7 @@ class BaasGui(object):
     def input_translate(self, textentry):
         ''' build input fields for delicious service '''
 
-        textentry.set_wrap_mode(WRAP_CHAR)
+        textentry.set_wrap_mode(WRAP_WORD)
         textentry.set_size_request(200, 50)
 
         self.button.set_size_request(200, 50)
@@ -930,7 +930,10 @@ class BaasGui(object):
         if hasattr(self, 'result_text'):
             self.result_text.destroy()
         self.result_text = Label()
-        if self.input_command == "weather":
+        if self.input_command == 'tlate':
+            self.result_text.set_selectable(True)
+            self.result_text.connect('copy-clipboard', self.text_copied)
+        elif self.input_command == "weather":
             self.result_text.set_size_request(770,-1)
         self.result_text.set_justify(JUSTIFY_LEFT)
         self.result_text.set_line_wrap(True)
@@ -1085,6 +1088,9 @@ class BaasGui(object):
             term = term.strip()
         return (term, lang)
 
+    def text_copied(self, label):
+        hildon_banner_show_information(self.window, "", "Copied")
+        
     def check_connection(self):
         try:
             urllib.urlopen('http://www.google.com')
