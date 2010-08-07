@@ -538,7 +538,9 @@ class BaasGui(object):
                 self.state.langs[self.input_command] = h_lang
             elif self.input_command not in ['metacritic']:
                 self.state.langs[self.input_command] = None
-                label_text = 'language' if self.input_command != "music" else 'Artist'
+                if self.input_command == "music": label_text = 'Artist'
+                elif self.input_command == "amazon": label_text = 'Country'
+                else: label_text = 'Language' 
                 self.lang_button.set_label(label_text)
 
         self.history_dialog.destroy()
@@ -580,7 +582,9 @@ class BaasGui(object):
             lang_button.set_active(langs.index(self.state.langs[self.input_command]))
             lang_button.set_label(self.state.langs[self.input_command][1])          
         else:
-            label_text = 'language' if self.input_command != "music" else 'Artist'
+            if self.input_command == "music": label_text = 'Artist'
+            elif self.input_command == "amazon": label_text = 'Country'
+            else: label_text = 'Language' 
             lang_button.set_label(label_text)
         lang_button.connect("value-changed", self.lang_selected,self.input_command)
         lang_button.set_border_width(0)
@@ -604,7 +608,7 @@ class BaasGui(object):
             lang_button.set_active(self.lang.get('gnews').index(self.state.langs[self.input_command]))
             lang_button.set_label(self.state.langs[self.input_command][1])
         else:
-            lang_button.set_label("edition")                        
+            lang_button.set_label("Edition")                        
         lang_button.connect("value-changed", self.edition_selected,self.input_command)
 
         lang_button.show_all()
@@ -1171,11 +1175,10 @@ class BaasGui(object):
             tracks = _extract_hits(data, 'Track')
             for row in tracks:
                 artist = _get_artist(row)
-                title = '"%s" (%s) by %s\n' % (row.get('title'), row.get('releaseYear'), artist.get('name'))
+                title = '"%s" (%s) by %s' % (row.get('title'), row.get('releaseYear'), artist.get('name'))
                 content = ''
                 try:
                     album = row['Album']['Release']
-                    print album
                     content = 'Album: %s' % album.get('title') if album.get('title') else ''
                     content += '\nLabel: %s' % (album.get('label')) if album.get('label') else ''
                 except:
