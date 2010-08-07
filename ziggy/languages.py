@@ -232,14 +232,34 @@ imdb_languages = [
 ('pt','Português'),
 ]
 
+amazon_sites = [
+('com','US'),
+('co.uk','UK'),
+('ca','Canada'),
+('cn','China'),
+('fr','France'),
+('de','Germany'),
+('it','Italiano'),
+('co.jp','Japan'),
+('at','Austria'),
+]
+
+music_types = [
+('artist','Artist'),
+('release','Release'),
+('track','Track'),
+]
+
 class Languages(object):
 
     def __init__(self):
         self.imdb = imdb_languages
         self.wikipedia = wikipedia_languages
+        self.amazon = amazon_sites
+        self.music = music_types
         self.web = self.news = self.weather = languages
         self.gweb = glanguages
-        self.gnews = gnews_editions
+        self.gnews = gnews_editions        
         self.tlate_from = glang_tlate
         self.tlate_to = glang_tlate
 

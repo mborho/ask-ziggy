@@ -42,12 +42,14 @@ wording = {
     'weather':'Weather Forecast',
     'news':'Yahoo News Search',
     'web':'Yahoo Web Search',
+    'music':'Yahoo Music',
     'gnews':'Google News Search',
     'gweb':'Google Web Search',
     'deli':'Bookmarks on delicious.com',
     'metacritic':'Reviews on metacritic.com',
     'imdb':'Movies on IMDb.com',
     'wikipedia':'Wikipedia',
+    'amazon':'Products on Amazon',
     }
 
 
@@ -366,6 +368,18 @@ class BaasGui(object):
         self.service_win.add(self.table)
         self.service_win.show_all()
 
+    def get_service_default_label(self):
+        
+        if self.input_command == "gnews":
+            label = 'edition'
+        elif self.input_command == "amazon":
+            label = 'country'
+        elif self.input_command == "music":
+            label = 'search type'
+        else:
+            label = 'language' 
+        return label
+        
     def build_service_menu(self):
         menu = AppMenu()
         if self.input_command != 'tlate':
@@ -382,9 +396,9 @@ class BaasGui(object):
         if self.input_command not in ['metacritic','deli']:
             l_button = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
             l_button.connect('clicked', self.menu_service_lang)
-            label_what = 'language' if self.input_command != "gnews" else 'edition'
+            label_what = self.get_service_default_label()
             if self.input_command != 'tlate':
-                label_what = 'language' if self.input_command != "gnews" else 'edition'
+                label_what = self.get_service_default_label()
                 cmd_name = self.input_command  
             else: 
                 label_what = 'target language'
@@ -409,7 +423,7 @@ class BaasGui(object):
         self.service_lang_dialog = Dialog()
         self.service_lang_dialog.set_transient_for(self.service_win)                                   
         if self.input_command != 'tlate':
-            label_what = 'language' if self.input_command != "gnews" else 'edition'
+            label_what = self.get_service_default_label()
             dialog_title = "Set default %s for this service" % label_what
             cmd_name = self.input_command  
             lang_selector = self.get_lang_selector(self.input_command)
@@ -524,7 +538,8 @@ class BaasGui(object):
                 self.state.langs[self.input_command] = h_lang
             elif self.input_command not in ['metacritic']:
                 self.state.langs[self.input_command] = None
-                self.lang_button.set_label('language')                
+                label_text = 'language' if self.input_command != "music" else 'Artist'
+                self.lang_button.set_label(label_text)
 
         self.history_dialog.destroy()
         self.trigger_request()
@@ -565,7 +580,8 @@ class BaasGui(object):
             lang_button.set_active(langs.index(self.state.langs[self.input_command]))
             lang_button.set_label(self.state.langs[self.input_command][1])          
         else:
-            lang_button.set_label('language')
+            label_text = 'language' if self.input_command != "music" else 'Artist'
+            lang_button.set_label(label_text)
         lang_button.connect("value-changed", self.lang_selected,self.input_command)
         lang_button.set_border_width(0)
         lang_button.show_all()
@@ -862,8 +878,12 @@ class BaasGui(object):
                 hildon_banner_show_information(self.window, "", str(e))
             except Exception, e:
                 hildon_banner_show_information(self.window, "", "Error occured.")
-
-            ## check result page
+            print result_msg
+            
+            if self.input_command == 'music':
+                result_msg = self.convert_music_to_ysearch(result_msg)
+                
+            ## check result page    
             if self.input_page > 1 and self.reload_results:
                 pass
                 #self.result_data = self.result_data + result_msg
@@ -877,7 +897,7 @@ class BaasGui(object):
 
         if hasattr(self, 'result_output') and self.input_page == 1:
             self.result_output.destroy()
-        if self.input_command not in ['tlate','weather']:
+        if self.input_command not in ['tlate','weather']:            
             if self.input_page > 1:
                 self.append_results_to_selector(result_msg)
                 self.result_data = self.result_data + result_msg
@@ -919,7 +939,7 @@ class BaasGui(object):
             for d in f:
                 markup += '%s: ' % (d['day_of_week'])
                 markup += '%s (%s°/%s°)\n' % (d['condition'], d['low'], d['high'])
-            markup = '<span size="x-large">%s</span>' % markup.decode('utf-8')
+            markup = '<span size="x-large">%s</span>' % markup.decode('utf-8')        
         else:
             markup = '<span size="x-large">%s</span>' % str(self.result_data)
         return htmlentities_decode(markup)
@@ -1118,3 +1138,48 @@ class BaasGui(object):
                 published =  dt.strftime('%a, %d %b %Y')
         except: pass 
         return published
+
+    def convert_music_to_ysearch(self, data):
+        converted = []
+        
+        def _get_artist(row):
+            artist = row.get('Artist',{})
+            if isinstance(artist, list): artist = artist[0]
+            return artist
+
+        def _extract_hits(result, name):
+            hits = result.get(name) if result else None    
+            # handle single result
+            if type(hits) == dict:
+                hits = [hits]
+            return hits
+        
+        if data.get('Artist'):
+            artists = _extract_hits(data, 'Artist')
+            for row in artists:
+                res = {'url': row.get('url'),'title':row.get('name'), 'content':''}
+                converted.append(res)
+        elif  data.get('Release'):
+            releases = _extract_hits(data, 'Release')
+            for row in releases:
+                artist = _get_artist(row)
+                title = '"%s" by %s' % (row.get('title'), artist.get('name'))
+                content = 'Year: %s\nLabel: %s' % (row.get('releaseYear'), row.get('label')) if row.get('label') else ''
+                res = {'url': row.get('url'),'title':title, 'content':content}
+                converted.append(res)
+        elif  data.get('Track'):
+            tracks = _extract_hits(data, 'Track')
+            for row in tracks:
+                artist = _get_artist(row)
+                title = '"%s" (%s) by %s\n' % (row.get('title'), row.get('releaseYear'), artist.get('name'))
+                content = ''
+                try:
+                    album = row['Album']['Release']
+                    print album
+                    content = 'Album: %s' % album.get('title') if album.get('title') else ''
+                    content += '\nLabel: %s' % (album.get('label')) if album.get('label') else ''
+                except:
+                    pass
+                res = {'url': row.get('url'),'title':title, 'content':content}
+                converted.append(res)
+        return converted
