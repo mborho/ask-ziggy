@@ -15,6 +15,7 @@ import dbus
 import urllib
 import gobject
 import socket
+import re
 from urllib2 import URLError
 from ziggy.languages import Languages
 from ziggy.state import AppState
@@ -49,9 +50,10 @@ wording = {
     'metacritic':'Reviews on metacritic.com',
     'imdb':'Movies on IMDb.com',
     'wikipedia':'Wikipedia',
-    'amazon':'Products on Amazon',
+    'amazon':'Amazon',
     }
 
+reg_amazon = re.compile(r'amazon.(de|com|fr|co\.uk|cn|ca):?\ ?', re.I)
 
 about_txt = """
 Ask Ziggy - Search for news, weather, translations, reviews,\t\t
@@ -137,14 +139,14 @@ class BaasGui(object):
         services = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
         services.set_label('Services')
         services.connect('clicked', self.menu_services)
-        
+
         about = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
         about.set_label('About')
         about.connect('clicked', self.menu_dialog,about_txt)
-        
+
         menu.append(settings)
         menu.append(services)
-        menu.append(about)        
+        menu.append(about)
         menu.show_all()
         return menu
 
@@ -208,9 +210,9 @@ class BaasGui(object):
     def menu_service_sorted(self, button, service, mode):
         current_pos = self.state.services.index(service)
         self.state.services.remove(service)
-        if mode == "up": 
+        if mode == "up":
             new_pos = current_pos-1
-        else: 
+        else:
             new_pos = current_pos+1
         self.state.services.insert(new_pos, service)
         self.menu_services_list.destroy()
@@ -243,29 +245,29 @@ class BaasGui(object):
         self.settings_dialog = Dialog()
         self.settings_dialog.set_title("Settings")
         self.settings_dialog.set_transient_for(self.window)
-        
+
         # service check button
         lbutton = CheckButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)
         lbutton.set_label('open urls directly in browser')
         lbutton.set_size_request(750, 70)
         lbutton.connect("toggled", self.menu_settings_toggled, 'direct_linkage')
         lbutton.set_active(self.state.direct_linkage)
-        
+
         # history len
         len_box = self.menu_select_history_len()
-        
+
         box2 = VBox(False)
         box2.pack_start(len_box, False, False, 5)
         box2.pack_start(lbutton, True, True, 5)
 
         self.settings_dialog.action_area.add(box2)
         self.settings_dialog.show_all()
-        
+
     def menu_settings_toggled(self, button, setting):
         active = button.get_active()
         setattr(self.state, setting, active)
         self.state.save()
-            
+
     def menu_select_history_len(self):
         ''' get a picker for history length '''
         len_picker = PickerButton(HILDON_SIZE_FINGER_HEIGHT, BUTTON_ARRANGEMENT_VERTICAL)
@@ -273,12 +275,12 @@ class BaasGui(object):
         selector.set_column_selection_mode(TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE)
         store = ListStore(str)
         values = ["0", "5", "10", "15", "20", "25", "30"]
-        for txt in values: 
-            store.append([txt])            
+        for txt in values:
+            store.append([txt])
         renderer = CellRendererText()
         renderer.set_fixed_size(-1, 100)
         renderer.props.xalign = 0.5
-        
+
         column = selector.append_column(store, renderer, markup=0)
         column.set_property("text-column", 0)
 
@@ -288,14 +290,14 @@ class BaasGui(object):
         current_val = str(self.state.history_len)
         if current_val in values:
             len_picker.set_active(values.index(current_val))
-                        
+
         len_label = Label('Entries in history:')
-        
+
         hbox = HBox(False)
         hbox.pack_start(len_label, True, True, 0)
         hbox.pack_start(len_picker, True, True, 0)
         return hbox
-        
+
     def menu_settings_history_len(self, picker):
         choice = picker.get_value()
         self.state.history_len = int(choice)
@@ -369,7 +371,7 @@ class BaasGui(object):
         self.service_win.show_all()
 
     def get_service_default_label(self):
-        
+
         if self.input_command == "gnews":
             label = 'edition'
         elif self.input_command == "amazon":
@@ -377,9 +379,9 @@ class BaasGui(object):
         elif self.input_command == "music":
             label = 'search type'
         else:
-            label = 'language' 
+            label = 'language'
         return label
-        
+
     def build_service_menu(self):
         menu = AppMenu()
         if self.input_command != 'tlate':
@@ -387,49 +389,49 @@ class BaasGui(object):
             h_button.connect('clicked', self.get_history_list)
             h_button.set_label('History')
             menu.append(h_button)
-            
+
             c_button = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
             c_button.connect('clicked', self.clear_history_list)
             c_button.set_label('Clear history')
             menu.append(c_button)
-                
+
         if self.input_command not in ['metacritic','deli']:
             l_button = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
             l_button.connect('clicked', self.menu_service_lang)
             label_what = self.get_service_default_label()
             if self.input_command != 'tlate':
                 label_what = self.get_service_default_label()
-                cmd_name = self.input_command  
-            else: 
+                cmd_name = self.input_command
+            else:
                 label_what = 'target language'
-                cmd_name = 'tlate_to'                
+                cmd_name = 'tlate_to'
             default_lang =  self.state.default_langs.get(cmd_name)
             if default_lang:
                 l_button.set_label('%s (default)' % default_lang[1])
             else:
                 l_button.set_label('Set default '+ label_what)
-            menu.append(l_button)            
+            menu.append(l_button)
 
             if self.state.default_langs.get(cmd_name):
                 cl_button = GtkButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT)
                 cl_button.connect('clicked', self.clear_default_lang)
                 cl_button.set_label('Clear default '+label_what)
                 menu.append(cl_button)
-        
+
         menu.show_all()
         self.service_win.set_app_menu(menu)
 
     def menu_service_lang(self, button):
         self.service_lang_dialog = Dialog()
-        self.service_lang_dialog.set_transient_for(self.service_win)                                   
+        self.service_lang_dialog.set_transient_for(self.service_win)
         if self.input_command != 'tlate':
             label_what = self.get_service_default_label()
             dialog_title = "Set default %s for this service" % label_what
-            cmd_name = self.input_command  
+            cmd_name = self.input_command
             lang_selector = self.get_lang_selector(self.input_command)
-        else: 
+        else:
             cmd_name = 'tlate_to'
-            lang_selector = self.get_tlate_selector(cmd_name)        
+            lang_selector = self.get_tlate_selector(cmd_name)
             dialog_title = "Set default target language for translations"
         lang_selector.set_size_request(760, 330)
         default_lang =  self.state.default_langs.get(cmd_name)
@@ -441,14 +443,14 @@ class BaasGui(object):
         self.service_lang_dialog.set_title(dialog_title)
         self.service_lang_dialog.action_area.add(lang_selector)
         self.service_lang_dialog.show_all()
-        
+
     def menu_services_lang_selected(self, selector, user_data):
         ''' handles lang selection '''
         if self.input_command == 'tlate':
             cmd_name = 'tlate_to'
         else:
             cmd_name = self.input_command
-        langs = self.lang.get(cmd_name)            
+        langs = self.lang.get(cmd_name)
         default = langs[selector.get_active(0)]
         self.state.default_langs[cmd_name] = default
         self.state.langs[cmd_name] = default
@@ -462,7 +464,7 @@ class BaasGui(object):
         self.state.save()
         self.service_lang_dialog.destroy()
         self.build_service_menu()
-        
+
     def clear_default_lang(self, button):
         if self.input_command == 'tlate':
             cmd_name = 'tlate_to'
@@ -471,7 +473,7 @@ class BaasGui(object):
         self.state.default_langs[cmd_name] = None
         self.state.save()
         self.build_service_menu()
-        
+
     def clear_history_list(self, button):
         dialog = Dialog("", self.service_win, DIALOG_MODAL | DIALOG_DESTROY_WITH_PARENT,
                             (STOCK_NO, RESPONSE_REJECT, STOCK_OK, RESPONSE_ACCEPT))
@@ -498,7 +500,9 @@ class BaasGui(object):
             (term, lang) = self.parse_term(e)
             sel_text = term
             if lang and self.input_command != 'deli':
-                sel_text += " <small>/ %s</small>" % self.lang.get(self.input_command, short=lang)[1]
+                sel_lang = self.lang.get(self.input_command, short=lang)
+                if sel_lang:
+                    sel_text += " <small>/ %s</small>" % sel_lang[1]
             elif lang:
                 sel_text += " <small>/ most popular</small>"
             lstore.append([str(e),sel_text])
@@ -512,7 +516,7 @@ class BaasGui(object):
         parea.add(treeview)
         parea.set_size_request(750, 330)
         self.history_dialog = Dialog('History')
-        self.history_dialog.set_transient_for(self.service_win) 
+        self.history_dialog.set_transient_for(self.service_win)
         self.history_dialog.set_title(button.get_label())
         self.history_dialog.action_area.add(parea)
         self.history_dialog.show_all()
@@ -531,16 +535,17 @@ class BaasGui(object):
         else:
             if lang:
                 h_lang = self.lang.get(self.input_command, short=lang)
-                self.lang_button.set_label(h_lang[1])
-                langs = self.lang.get(self.input_command)
-                self.lang_button.set_active(langs.index(h_lang))
-                self.input_lang = h_lang
-                self.state.langs[self.input_command] = h_lang
+                if h_lang:
+                    self.lang_button.set_label(h_lang[1])
+                    langs = self.lang.get(self.input_command)
+                    self.lang_button.set_active(langs.index(h_lang))
+                    self.input_lang = h_lang
+                    self.state.langs[self.input_command] = h_lang
             elif self.input_command not in ['metacritic']:
                 self.state.langs[self.input_command] = None
                 if self.input_command == "music": label_text = 'Artist'
                 elif self.input_command == "amazon": label_text = 'Country'
-                else: label_text = 'Language' 
+                else: label_text = 'Language'
                 self.lang_button.set_label(label_text)
 
         self.history_dialog.destroy()
@@ -569,7 +574,7 @@ class BaasGui(object):
         renderer.set_fixed_size(-1, 100)
         column = selector.append_column(store, renderer, text=1)
         column.set_property("text-column", 1)
-        renderer.props.xalign = 0.5        
+        renderer.props.xalign = 0.5
         return selector
 
     def get_lang_button(self):
@@ -578,13 +583,13 @@ class BaasGui(object):
         selector = self.get_lang_selector(self.input_command)
         lang_button.set_selector(selector)
         langs = self.lang.get(self.input_command)
-        if self.state.langs.get(self.input_command):            
+        if self.state.langs.get(self.input_command):
             lang_button.set_active(langs.index(self.state.langs[self.input_command]))
-            lang_button.set_label(self.state.langs[self.input_command][1])          
+            lang_button.set_label(self.state.langs[self.input_command][1])
         else:
             if self.input_command == "music": label_text = 'Artist'
             elif self.input_command == "amazon": label_text = 'Country'
-            else: label_text = 'Language' 
+            else: label_text = 'Language'
             lang_button.set_label(label_text)
         lang_button.connect("value-changed", self.lang_selected,self.input_command)
         lang_button.set_border_width(0)
@@ -596,7 +601,7 @@ class BaasGui(object):
         for (short, name) in self.lang.get('gnews'):
             selector.append_text(name)
         return selector
-        
+
     def get_edition_button(self):
         """ builds button for google news language selection """
         lang_button = PickerButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT,
@@ -608,7 +613,7 @@ class BaasGui(object):
             lang_button.set_active(self.lang.get('gnews').index(self.state.langs[self.input_command]))
             lang_button.set_label(self.state.langs[self.input_command][1])
         else:
-            lang_button.set_label("Edition")                        
+            lang_button.set_label("Edition")
         lang_button.connect("value-changed", self.edition_selected,self.input_command)
 
         lang_button.show_all()
@@ -713,7 +718,7 @@ class BaasGui(object):
         store = ListStore(str, str);
         if token_name == "tlate_from":
             store.append(['','auto'])
-        glang_tlate = self.lang.get(token_name)            
+        glang_tlate = self.lang.get(token_name)
         for (short, name) in glang_tlate:
             store.append([short,name])
         renderer = CellRendererText()
@@ -723,10 +728,10 @@ class BaasGui(object):
         column.set_property("text-column", 1)
         renderer.props.xalign = 0.5
         return selector
-        
+
     def get_tlate_button(self, label, token):
         """ builds button for language selection """
-        token_name = 'tlate_from' if token == "@" else 'tlate_to'            
+        token_name = 'tlate_from' if token == "@" else 'tlate_to'
         selector = self.get_tlate_selector(token_name)
         self.tlate_buttons[token_name] = PickerButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_THUMB_HEIGHT,
             BUTTON_ARRANGEMENT_HORIZONTAL)
@@ -734,7 +739,7 @@ class BaasGui(object):
         self.tlate_buttons[token_name].set_label(label)
         if self.state.tlate.get(token):
             active_index = self.lang.get(token_name).index(self.state.tlate[token])
-            if token == "@": active_index += 1                
+            if token == "@": active_index += 1
             self.tlate_buttons[token_name].set_active(active_index)
             self.tlate_buttons[token_name].set_label(self.state.tlate[token][1])
         elif self.state.default_langs.get(token_name):
@@ -849,7 +854,7 @@ class BaasGui(object):
             self.input_page = 1
 
         if self.input_page == 1:
-            self.result_data = None        
+            self.result_data = None
 
         commando_func = pluginHnd.commands.get(self.input_command)
 
@@ -859,7 +864,7 @@ class BaasGui(object):
         if self.input_buffer == '':
             self.waiting_stop()
             return None
-        
+
         if commando_func:
             term = self.prepare_term()
             if term != self.term:
@@ -868,7 +873,7 @@ class BaasGui(object):
 
             if self.input_page > 1:
                 term = '%s [%d]' % (self.term, self.input_page)
-   
+
             result_msg = []
             try:
                 result_msg = self.do_request(commando_func, term)
@@ -882,12 +887,11 @@ class BaasGui(object):
                 hildon_banner_show_information(self.window, "", str(e))
             except Exception, e:
                 hildon_banner_show_information(self.window, "", "Error occured.")
-            print result_msg
-            
+
             if self.input_command == 'music':
                 result_msg = self.convert_music_to_ysearch(result_msg)
-                
-            ## check result page    
+
+            ## check result page
             if self.input_page > 1 and self.reload_results:
                 pass
                 #self.result_data = self.result_data + result_msg
@@ -901,7 +905,7 @@ class BaasGui(object):
 
         if hasattr(self, 'result_output') and self.input_page == 1:
             self.result_output.destroy()
-        if self.input_command not in ['tlate','weather']:            
+        if self.input_command not in ['tlate','weather']:
             if self.input_page > 1:
                 self.append_results_to_selector(result_msg)
                 self.result_data = self.result_data + result_msg
@@ -912,7 +916,7 @@ class BaasGui(object):
             self.create_result_text(result_markup)
 
         if self.input_page == 1:
-            self.result_area.add(self.result_output)        
+            self.result_area.add(self.result_output)
 
         self.result_output.show()
         self.waiting_stop()
@@ -943,7 +947,7 @@ class BaasGui(object):
             for d in f:
                 markup += '%s: ' % (d['day_of_week'])
                 markup += '%s (%s°/%s°)\n' % (d['condition'], d['low'], d['high'])
-            markup = '<span size="x-large">%s</span>' % markup.decode('utf-8')        
+            markup = '<span size="x-large">%s</span>' % markup.decode('utf-8')
         else:
             markup = '<span size="x-large">%s</span>' % str(self.result_data)
         return htmlentities_decode(markup)
@@ -988,7 +992,7 @@ class BaasGui(object):
         self.detail_dialog.destroy()
 
     def show_result_detail_dialog(self, treeview, selection, column):
-        active = selection[0]       
+        active = selection[0]
         if active == len(self.result_data):
             # set new row text
             sel_iter = self.store.get_iter((self.input_page) * pluginHnd.limits.get(self.input_command,1))
@@ -1001,14 +1005,14 @@ class BaasGui(object):
         elif self.result_data and type(self.result_data[active]) == dict:
             entry =  self.result_data[active]
             published = self.get_pub_date(entry)
-                  
+
             text = '\n<span size="larger">%s</span>\n' % xmlify(htmlentities_decode(entry.get('title','#')))
             if published:
                 text += '<span size="x-small" style="italic" color="grey">%s</span>' % (xmlify(published))
             content_field = 'content' if self.input_command not in ['news','web'] else 'abstract'
             text += '\n<span>%s</span>' \
                 % xmlify(htmlentities_decode(entry.get(content_field,'')))
-            text += '\n<span size="x-small" style="italic" color="grey">%s</span>\n' % (xmlify(self.get_link(entry)))            
+            text += '\n<span size="x-small" style="italic" color="grey">%s</span>\n' % (xmlify(self.get_link(entry)))
 
             label = Label()
             label.set_markup(text)
@@ -1043,6 +1047,8 @@ class BaasGui(object):
         self.store.remove(self.store.get_iter(len(self.store)-1))
         if entries and type(entries) == list:
             for entry in entries:
+                if self.input_command == 'amazon':
+                    entry['title'] = self.clean_amazon_title(entry.get('title'))
                 title = '<span>%s</span>' % xmlify(htmlentities_decode(entry.get('title','#')))
                 title += '\n<span size="x-small" style="italic">%s</span>' % xmlify(self.get_link(entry))
                 self.store.insert(position, [0,title])
@@ -1071,6 +1077,8 @@ class BaasGui(object):
         self.store = ListStore(int, str);
         if entries and type(entries) == list:
             for entry in entries:
+                if self.input_command == 'amazon':
+                    entry['title'] = self.clean_amazon_title(entry.get('title'))
                 title = '<span>%s</span>' % xmlify(htmlentities_decode(entry.get('title','#')))
                 title += '\n<span size="x-small" style="italic">%s</span>' % xmlify(self.get_link(entry))
                 self.store.append([0,title])
@@ -1114,7 +1122,7 @@ class BaasGui(object):
 
     def text_copied(self, label):
         hildon_banner_show_information(self.window, "", "Copied")
-        
+
     def check_connection(self):
         try:
             urllib.urlopen('http://www.google.com')
@@ -1132,32 +1140,35 @@ class BaasGui(object):
     def get_pub_date(self, entry):
         published = ''
         try:
-            if self.input_command == "gnews": 
+            if self.input_command == "gnews":
                 published = entry.get('publishedDate')[0:17]
-            elif self.input_command == "deli": 
+            elif self.input_command == "deli":
                 published = entry.get('pubDate')[0:17]
-            elif self.input_command == "news": 
+            elif self.input_command == "news":
                 from datetime import datetime
                 dt = datetime.strptime(entry.get('date'),'%Y/%m/%d')
                 published =  dt.strftime('%a, %d %b %Y')
-        except: pass 
+        except: pass
         return published
 
     def convert_music_to_ysearch(self, data):
         converted = []
-        
+
+        if data is None:
+            return converted
+
         def _get_artist(row):
             artist = row.get('Artist',{})
             if isinstance(artist, list): artist = artist[0]
             return artist
 
         def _extract_hits(result, name):
-            hits = result.get(name) if result else None    
+            hits = result.get(name) if result else None
             # handle single result
             if type(hits) == dict:
                 hits = [hits]
             return hits
-        
+
         if data.get('Artist'):
             artists = _extract_hits(data, 'Artist')
             for row in artists:
@@ -1186,3 +1197,7 @@ class BaasGui(object):
                 res = {'url': row.get('url'),'title':title, 'content':content}
                 converted.append(res)
         return converted
+
+    def clean_amazon_title(self, title):
+        title = reg_amazon.sub(' ',title)
+        return title.strip()

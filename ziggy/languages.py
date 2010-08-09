@@ -239,9 +239,7 @@ amazon_sites = [
 ('cn','China'),
 ('fr','France'),
 ('de','Germany'),
-('it','Italiano'),
 ('co.jp','Japan'),
-('at','Austria'),
 ]
 
 music_types = [
@@ -259,7 +257,7 @@ class Languages(object):
         self.music = music_types
         self.web = self.news = self.weather = languages
         self.gweb = glanguages
-        self.gnews = gnews_editions        
+        self.gnews = gnews_editions
         self.tlate_from = glang_tlate
         self.tlate_to = glang_tlate
 
@@ -271,5 +269,5 @@ class Languages(object):
             for (shorty,name) in lang_list:
                 if short == shorty:
                     return (shorty,name)
-        else: 
+        else:
             return lang_list
