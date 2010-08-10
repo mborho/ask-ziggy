@@ -969,11 +969,23 @@ class BaasGui(object):
         self.result_output.add_with_viewport(self.result_text)
         self.result_text.show()
 
-    def result_selection_changed(self, selector, user_data):
+    def load_next_result_interval(self):
+        # set new row text
+        sel_iter = self.store.get_iter((self.input_page) * pluginHnd.limits.get(self.input_command,1))
+        loading_msg = self.build_next_results_markup(' . . . loading next results')
+        self.store.set_value(sel_iter, 1, loading_msg)
+        # do a reload of the next results
+        self.input_page += 1
+        self.reload_results = True
+        self.trigger_request()
+        
+    def result_selection_changed(self, selector, user_data, column):
         ''' opens selected search result in browser '''
-        active = selector.get_active(0)
-        current_selection = selector.get_current_text()
-        if current_selection and type(self.result_data[active]) == dict:
+        active = user_data[0]
+        len_results = len(self.result_data)
+        if active == len_results:
+            self.load_next_result_interval()
+        elif len_results > 0 and type(self.result_data[active]) == dict:
             if self.result_data[active].get('unescapedUrl'):
                 self.open_link(self.result_data[active]['unescapedUrl'])
             elif self.result_data[active].get('url'):
@@ -994,14 +1006,7 @@ class BaasGui(object):
     def show_result_detail_dialog(self, treeview, selection, column):
         active = selection[0]
         if active == len(self.result_data):
-            # set new row text
-            sel_iter = self.store.get_iter((self.input_page) * pluginHnd.limits.get(self.input_command,1))
-            loading_msg = self.build_next_results_markup(' . . . loading next results')
-            self.store.set_value(sel_iter, 1, loading_msg)
-            # do a reload of the next results
-            self.input_page += 1
-            self.reload_results = True
-            self.trigger_request()
+            self.load_next_result_interval()
         elif self.result_data and type(self.result_data[active]) == dict:
             entry =  self.result_data[active]
             published = self.get_pub_date(entry)
