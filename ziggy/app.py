@@ -980,7 +980,10 @@ class BaasGui(object):
         self.trigger_request()
         
     def result_selection_changed(self, selector, user_data, column):
-        ''' opens selected search result in browser '''
+        ''' opens selected search result in browser '''            
+        if not self.result_data:
+            return None
+            
         active = user_data[0]
         len_results = len(self.result_data)
         if active == len_results:
@@ -1004,10 +1007,13 @@ class BaasGui(object):
         self.detail_dialog.destroy()
 
     def show_result_detail_dialog(self, treeview, selection, column):
-        active = selection[0]
+        if not self.result_data:
+            return None
+            
+        active = selection[0]            
         if active == len(self.result_data):
             self.load_next_result_interval()
-        elif self.result_data and type(self.result_data[active]) == dict:
+        elif type(self.result_data[active]) == dict:
             entry =  self.result_data[active]
             published = self.get_pub_date(entry)
 
