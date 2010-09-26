@@ -248,6 +248,12 @@ music_types = [
 ('track','Track'),
 ]
 
+maemo_types = [
+('talk','Talk'),
+('packages','Packages'),
+('wiki','Wiki'),
+]
+
 class Languages(object):
 
     def __init__(self):
@@ -255,6 +261,7 @@ class Languages(object):
         self.wikipedia = wikipedia_languages
         self.amazon = amazon_sites
         self.music = music_types
+        self.maemo = maemo_types
         self.web = self.news = self.weather = languages
         self.gweb = glanguages
         self.gnews = gnews_editions

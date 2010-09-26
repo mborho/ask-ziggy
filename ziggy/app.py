@@ -51,9 +51,11 @@ wording = {
     'imdb':'Movies on IMDb.com',
     'wikipedia':'Wikipedia',
     'amazon':'Amazon',
+    'maemo':'Maemo.org',
     }
 
 reg_amazon = re.compile(r'amazon.(de|com|fr|co\.uk|cn|ca):?\ ?', re.I)
+reg_maemo = re.compile(r'( - maemo\.org wiki|maemo\.org - package overview for | - maemo\.org - Talk)', re.I)
 
 about_txt = """
 Ask Ziggy - Search for news, weather, translations, reviews,\t\t
@@ -378,6 +380,8 @@ class BaasGui(object):
             label = 'country'
         elif self.input_command == "music":
             label = 'search type'
+        elif self.input_command == "maemo":
+            label = ''
         else:
             label = 'language'
         return label
@@ -544,6 +548,7 @@ class BaasGui(object):
             elif self.input_command not in ['metacritic']:
                 self.state.langs[self.input_command] = None
                 if self.input_command == "music": label_text = 'Artist'
+                elif self.input_command == "maemo": label_text = 'Talk'
                 elif self.input_command == "amazon": label_text = 'Country'
                 else: label_text = 'Language'
                 self.lang_button.set_label(label_text)
@@ -588,6 +593,7 @@ class BaasGui(object):
             lang_button.set_label(self.state.langs[self.input_command][1])
         else:
             if self.input_command == "music": label_text = 'Artist'
+            elif self.input_command == "maemo": label_text = 'Talk'
             elif self.input_command == "amazon": label_text = 'Country'
             else: label_text = 'Language'
             lang_button.set_label(label_text)
@@ -1060,6 +1066,8 @@ class BaasGui(object):
             for entry in entries:
                 if self.input_command == 'amazon':
                     entry['title'] = self.clean_amazon_title(entry.get('title'))
+                elif self.input_command == 'maemo':
+                    entry['title'] = self.clean_maemo_title(entry.get('title'))
                 title = '<span>%s</span>' % xmlify(htmlentities_decode(entry.get('title','#')))
                 title += '\n<span size="x-small" style="italic">%s</span>' % xmlify(self.get_link(entry))
                 self.store.insert(position, [0,title])
@@ -1090,6 +1098,8 @@ class BaasGui(object):
             for entry in entries:
                 if self.input_command == 'amazon':
                     entry['title'] = self.clean_amazon_title(entry.get('title'))
+                elif self.input_command == 'maemo':
+                    entry['title'] = self.clean_maemo_title(entry.get('title'))                    
                 title = '<span>%s</span>' % xmlify(htmlentities_decode(entry.get('title','#')))
                 title += '\n<span size="x-small" style="italic">%s</span>' % xmlify(self.get_link(entry))
                 self.store.append([0,title])
@@ -1211,4 +1221,8 @@ class BaasGui(object):
 
     def clean_amazon_title(self, title):
         title = reg_amazon.sub(' ',title)
+        return title.strip()
+
+    def clean_maemo_title(self, title):
+        title = reg_maemo.sub('',title)
         return title.strip()
