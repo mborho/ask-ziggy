@@ -1016,7 +1016,7 @@ class BaasGui(object):
                 self.open_link(self.result_data[active]['url'])
             elif self.result_data[active].get('link'):
                 self.open_link(self.result_data[active]['link'])
-
+            
     def detail_open_url(self, button, entry):
         ''' opens selected search result in browser '''
         if entry.get('unescapedUrl'):
@@ -1135,6 +1135,7 @@ class BaasGui(object):
         return parea
 
     def open_link(self, link):
+        link = self.modify_result_link(link)
         osso_c = osso.Context("osso_baas_receiver", "0.0.1", False)
         osso_rpc = osso.Rpc(osso_c)
         osso_rpc.rpc_run_with_defaults("osso_browser", "open_new_window", (link,))
@@ -1146,9 +1147,14 @@ class BaasGui(object):
         elif entry.get('url'):
             link = entry['url']
         elif entry.get('link'):
-            link = entry['link']
+            link = entry['link']                           
         return link
 
+    def modify_result_link(self, link):
+        if self.input_command == 'maemo' and link.find('showthread.php?') >= 0:
+            link += '&highlight='+urllib.quote_plus(self.input_buffer.strip())
+        return link
+        
     def parse_term(self, term):
         lang = None
         if term and term.find('#')+1:
