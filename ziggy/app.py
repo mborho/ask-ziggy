@@ -16,6 +16,7 @@ import urllib
 import gobject
 import socket
 import re
+from gconf import client_get_default
 from urllib2 import URLError
 from ziggy.languages import Languages
 from ziggy.state import AppState
@@ -86,6 +87,9 @@ class BaasGui(object):
         self.service_dialog = None
         set_application_name("Ask Ziggy")
 
+        # first handle proxy settings
+        self.handle_proxy_settings()
+        
         # Create a new programm
         program = Program.get_instance()
 
@@ -254,6 +258,13 @@ class BaasGui(object):
         lbutton.set_size_request(750, 70)
         lbutton.connect("toggled", self.menu_settings_toggled, 'direct_linkage')
         lbutton.set_active(self.state.direct_linkage)
+        
+        # service check button
+        pbutton = CheckButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)
+        pbutton.set_label('use proxy settings')
+        pbutton.set_size_request(750, 70)
+        pbutton.set_active(self.state.use_proxy)
+        pbutton.connect("toggled", self.menu_settings_toggled, 'use_proxy')
 
         # history len
         len_box = self.menu_select_history_len()
@@ -261,6 +272,7 @@ class BaasGui(object):
         box2 = VBox(False)
         box2.pack_start(len_box, False, False, 5)
         box2.pack_start(lbutton, True, True, 5)
+        box2.pack_start(pbutton, True, True, 5)
 
         self.settings_dialog.action_area.add(box2)
         self.settings_dialog.show_all()
@@ -269,6 +281,9 @@ class BaasGui(object):
         active = button.get_active()
         setattr(self.state, setting, active)
         self.state.save()
+        if setting == 'use_proxy':
+            hildon_banner_show_information(self.window, "",
+                "You must restart the application before the new setting will take effect.")
 
     def menu_select_history_len(self):
         ''' get a picker for history length '''
@@ -1226,3 +1241,12 @@ class BaasGui(object):
     def clean_maemo_title(self, title):
         title = reg_maemo.sub('',title)
         return title.strip()
+        
+    def handle_proxy_settings(self):
+        if self.state.use_proxy and client_get_default().get_bool('/system/http_proxy/use_http_proxy'):
+            port = client_get_default().get_int('/system/http_proxy/port')
+            http = client_get_default().get_string('/system/http_proxy/host')
+            proxy = "http://%s:%s/"% (http,port)
+            import os
+            os.environ['http_proxy'] = proxy
+            print "setting proxy to", proxy

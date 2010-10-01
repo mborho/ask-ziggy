@@ -20,6 +20,7 @@ class AppState(object):
         self.services_active = services[0:]
         self.deli_pop = 0
         self.direct_linkage = False
+        self.use_proxy = False
         self.history_len = 10
         self.buffers = {}
         self.langs = {}
@@ -61,6 +62,7 @@ class AppState(object):
             data = simplejson.loads(json)
             self.history = data.get('history',{})
             self.direct_linkage = data.get('direct_linkage', self.direct_linkage)
+            self.use_proxy = data.get('use_proxy', self.use_proxy)
             self.history_len = data.get('history_len', self.history_len)
             self.default_langs = data.get('default_langs', {})
             self.services_active = data.get('services_active',self.services_active) 
@@ -73,7 +75,8 @@ class AppState(object):
     def save(self):
         state = {
             'history':self.history, 'history_len': self.history_len, 'services_active': self.services_active, 
-            'services':self.services, 'direct_linkage': self.direct_linkage, 'default_langs': self.default_langs,}
+            'services':self.services, 'direct_linkage': self.direct_linkage, 'use_proxy':self.use_proxy, 
+            'default_langs': self.default_langs,}
         f = open(self.config_file,'w')
         simplejson.dump(state, f)
         f.close()
