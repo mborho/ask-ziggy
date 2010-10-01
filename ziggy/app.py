@@ -1151,8 +1151,11 @@ class BaasGui(object):
         return link
 
     def modify_result_link(self, link):
-        if self.input_command == 'maemo' and link.find('showthread.php?') >= 0:
-            link += '&highlight='+urllib.quote_plus(self.input_buffer.strip())
+        try:
+            if self.input_command == 'maemo' and link.find('showthread.php?') >= 0:
+                link += '&highlight='+urllib.quote_plus(self.input_buffer.strip().encode('latin-1'))
+        except:
+            pass
         return link
         
     def parse_term(self, term):
