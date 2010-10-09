@@ -266,6 +266,13 @@ class BaasGui(object):
         pbutton.set_active(self.state.use_proxy)
         pbutton.connect("toggled", self.menu_settings_toggled, 'use_proxy')
 
+        # service check button
+        mbutton = CheckButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)
+        mbutton.set_label('use google mobilizer to open webpages')
+        mbutton.set_size_request(750, 70)
+        mbutton.set_active(self.state.mobilizer)
+        mbutton.connect("toggled", self.menu_settings_toggled, 'mobilizer')
+        
         # history len
         len_box = self.menu_select_history_len()
 
@@ -273,6 +280,7 @@ class BaasGui(object):
         box2.pack_start(len_box, False, False, 5)
         box2.pack_start(lbutton, True, True, 5)
         box2.pack_start(pbutton, True, True, 5)
+        box2.pack_start(mbutton, True, True, 5)
 
         self.settings_dialog.action_area.add(box2)
         self.settings_dialog.show_all()
@@ -1153,9 +1161,11 @@ class BaasGui(object):
     def modify_result_link(self, link):
         try:
             if self.input_command == 'maemo' and link.find('showthread.php?') >= 0:
-                link += '&highlight='+urllib.quote_plus(self.input_buffer.strip().encode('latin-1'))
+                link += '&highlight='+urllib.quote_plus(self.input_buffer.strip().encode('latin-1'))                
+            if self.state.mobilizer:
+                link = 'http://google.com/gwt/x?u=%s' % urllib.quote_plus(link)
         except:
-            pass
+            pass        
         return link
         
     def parse_term(self, term):
