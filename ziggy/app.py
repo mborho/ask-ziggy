@@ -16,13 +16,14 @@ import urllib
 import gobject
 import socket
 import re
+import os.path
 from gconf import client_get_default
 from urllib2 import URLError
 from ziggy.languages import Languages
 from ziggy.state import AppState
 from baas.core.plugins import PluginLoader
 from baas.core.helpers import strip_tags, htmlentities_decode, xmlify
-from gtk import set_application_name, HBox, VBox, Label, Dialog, gdk, TextBuffer, Table, ListStore, CellRendererText, TreeViewColumn, main_quit
+from gtk import set_application_name, HBox, VBox, Label, Dialog, gdk, Image, TextBuffer, Table, ListStore, CellRendererText, TreeViewColumn, main_quit
 from gtk import DIALOG_MODAL, DIALOG_DESTROY_WITH_PARENT, STOCK_NO, RESPONSE_REJECT, STOCK_OK, RESPONSE_ACCEPT, HILDON_UI_MODE_NORMAL
 from gtk import HILDON_SIZE_THUMB_HEIGHT, HILDON_SIZE_AUTO_HEIGHT, HILDON_SIZE_AUTO_WIDTH, HILDON_SIZE_FINGER_HEIGHT, WRAP_WORD
 from gtk import FILL, EXPAND, JUSTIFY_LEFT
@@ -32,6 +33,8 @@ from hildon import  BUTTON_ARRANGEMENT_VERTICAL, BUTTON_ARRANGEMENT_HORIZONTAL, 
 
 timeout = 8
 socket.setdefaulttimeout(timeout)
+
+icon_dir = os.path.dirname(__file__)+'/icons/'
 
 pluginHnd = PluginLoader(config=False,format="raw")
 pluginHnd.load_plugins()
@@ -126,9 +129,13 @@ class BaasGui(object):
             height = HILDON_SIZE_AUTO_HEIGHT
         for service in self.state.services:
             if service not in self.state.services_active:
-                continue
+                continue            
             button = GtkButton(HILDON_SIZE_AUTO_WIDTH | height)
-            button.set_label(wording.get(service, service))
+            img = Image()
+            img.set_from_file(icon_dir+service+'.png')
+            button.set_label('   '+wording.get(service, service))
+            button.set_image(img)
+            button.set_alignment(0.0, 0.5)
             button.connect("clicked", self.show_service_window, service)
             services_box.pack_start(button, True, True, 0)
             button.show()
