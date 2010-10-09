@@ -88,6 +88,7 @@ class BaasGui(object):
         self.lang_button = None
         self.tlate_buttons = {'tlate_to':None,'tlate_from':None}
         self.service_dialog = None
+        self.menu_service_list_moved = None
         set_application_name("Ask Ziggy")
 
         # first handle proxy settings
@@ -172,7 +173,7 @@ class BaasGui(object):
         dialog.set_transient_for(self.window)
         dialog.action_area.pack_start(label, True, True, 0)
         dialog.show_all()
-
+        
     def menu_services(self, button):
         self.service_dialog = Dialog()
         self.service_dialog.set_title("Select and sort services")
@@ -217,7 +218,7 @@ class BaasGui(object):
             x += 1
 
         parea.add_with_viewport(services_box)
-        parea.set_size_request(750, 330)
+        parea.set_size_request(750, 330)        
         return parea
 
     def menu_service_sorted(self, button, service, mode):
@@ -227,9 +228,11 @@ class BaasGui(object):
             new_pos = current_pos-1
         else:
             new_pos = current_pos+1
+        self.menu_service_list_moved = new_pos
         self.state.services.insert(new_pos, service)
         self.menu_services_list.destroy()
-        self.menu_services_list = self.menu_services_parea()
+        self.menu_services_list = self.menu_services_parea()        
+        gobject.idle_add(self.menu_services_jump_to)
         self.service_dialog.action_area.add(self.menu_services_list)
         self.service_dialog.show_all()
         self.rebuild_start_screen()
@@ -247,11 +250,15 @@ class BaasGui(object):
             self.state.services_active.remove(service)
         self.rebuild_start_screen()
 
+    def menu_services_jump_to(self):
+        if self.menu_service_list_moved:
+            child =  self.menu_services_list.get_children()[0].get_children()[0].get_children()[self.menu_service_list_moved]
+            self.menu_services_list.jump_to_child(child)
+            
     def rebuild_start_screen(self):
         self.services_box.destroy()
         self.services_box = self.get_services_box()
-        self.panned_window.add_with_viewport(self.services_box)
-        self.panned_window.show()
+        self.panned_window.add_with_viewport(self.services_box)        
         self.state.save()
 
     def menu_settings(self, button):
