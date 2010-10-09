@@ -133,7 +133,7 @@ class BaasGui(object):
             button = GtkButton(HILDON_SIZE_AUTO_WIDTH | height)
             img = Image()
             img.set_from_file(icon_dir+service+'.png')
-            button.set_label('   '+wording.get(service, service))
+            button.set_label('  '+wording.get(service, service))
             button.set_image(img)
             button.set_alignment(0.0, 0.5)
             button.connect("clicked", self.show_service_window, service)
