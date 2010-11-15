@@ -26,7 +26,7 @@ from baas.core.helpers import strip_tags, htmlentities_decode, xmlify
 from gtk import set_application_name, HBox, VBox, Label, Dialog, gdk, Image, TextBuffer, Table, ListStore, CellRendererText, TreeViewColumn, main_quit
 from gtk import DIALOG_MODAL, DIALOG_DESTROY_WITH_PARENT, STOCK_NO, RESPONSE_REJECT, STOCK_OK, RESPONSE_ACCEPT, HILDON_UI_MODE_NORMAL
 from gtk import HILDON_SIZE_THUMB_HEIGHT, HILDON_SIZE_AUTO_HEIGHT, HILDON_SIZE_AUTO_WIDTH, HILDON_SIZE_FINGER_HEIGHT, WRAP_WORD
-from gtk import FILL, EXPAND, JUSTIFY_LEFT
+from gtk import FILL, EXPAND, JUSTIFY_LEFT, POLICY_NEVER
 from hildon import Program, StackableWindow, PannableArea, Button, AppMenu, GtkButton, CheckButton, Entry, TextView, GtkTreeView, PickerButton
 from hildon import hildon_banner_show_information, hildon_gtk_window_set_progress_indicator, TouchSelector
 from hildon import  BUTTON_ARRANGEMENT_VERTICAL, BUTTON_ARRANGEMENT_HORIZONTAL, TOUCH_SELECTOR_SELECTION_MODE_MULTIPLE
@@ -89,6 +89,7 @@ class BaasGui(object):
         self.tlate_buttons = {'tlate_to':None,'tlate_from':None}
         self.service_dialog = None
         self.menu_service_list_moved = None
+        self.quick_entry = None
         set_application_name("Ask Ziggy")
 
         # first handle proxy settings
@@ -112,22 +113,41 @@ class BaasGui(object):
         self.window.show()
 
     def get_services_main(self):
-        box = HBox(False, 5)
+        box = HBox(False, 4)
         self.panned_window = PannableArea()
-        self.panned_window.set_border_width(10)
+        self.panned_window.set_border_width(0)
+        self.panned_window.set_property('vscrollbar-policy',POLICY_NEVER)
         self.panned_window.show()
         self.services_box = self.get_services_box()
-        self.panned_window.add_with_viewport(self.services_box)
+        self.panned_window.add_with_viewport(self.services_box)        
         box.pack_start(self.panned_window, True, True, 0)
-        box.show()
-        return box
-
+        box.show()                                 
+        return box       
+        
     def get_services_box(self):
-        services_box = VBox(False, 5)
+        services_box = VBox(False, 5)   
+        services_box.set_border_width(0)
+        button_style_flip = 5
+        
+        # quick search entry    
+        if not self.state.hide_quick:
+            # enable focus for quick search
+            def quick_focus_grab(quick_entry):
+                quick_entry.set_property("can-focus", True)
+                
+            self.quick_entry = Entry(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)                       
+            self.quick_entry.set_placeholder('quick search')               
+            self.quick_entry.set_property("can-focus", False) # no focus 
+            self.quick_entry.connect("grab-focus", quick_focus_grab)
+            self.quick_entry.show()                    
+            services_box.pack_start(self.quick_entry, True, True, 0)                                                 
+            button_style_flip = 4
+            
         #set button height
-        height = HILDON_SIZE_FINGER_HEIGHT
-        if len(self.state.services_active) <= 5:
+        height = HILDON_SIZE_FINGER_HEIGHT    
+        if len(self.state.services_active) <= button_style_flip:
             height = HILDON_SIZE_AUTO_HEIGHT
+        
         for service in self.state.services:
             if service not in self.state.services_active:
                 continue            
@@ -139,8 +159,8 @@ class BaasGui(object):
             button.set_alignment(0.0, 0.5)
             button.connect("clicked", self.show_service_window, service)
             services_box.pack_start(button, True, True, 0)
-            button.show()
-        services_box.show()
+            button.show()      
+        services_box.show()          
         return services_box
 
     def create_main_menu(self):
@@ -261,11 +281,18 @@ class BaasGui(object):
         self.panned_window.add_with_viewport(self.services_box)        
         self.state.save()
 
-    def menu_settings(self, button):
+    def menu_settings(self, button):          
         self.settings_dialog = Dialog()
         self.settings_dialog.set_title("Settings")
         self.settings_dialog.set_transient_for(self.window)
 
+        # hide quick search entry 
+        qbutton = CheckButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)
+        qbutton.set_label('hide quick search')
+        qbutton.set_size_request(750, 70)
+        qbutton.connect("toggled", self.menu_settings_toggled, 'hide_quick')
+        qbutton.set_active(self.state.hide_quick)
+        
         # service check button
         lbutton = CheckButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)
         lbutton.set_label('open urls directly in browser')
@@ -291,12 +318,17 @@ class BaasGui(object):
         len_box = self.menu_select_history_len()
 
         box2 = VBox(False)
-        box2.pack_start(len_box, False, False, 5)
-        box2.pack_start(lbutton, True, True, 5)
-        box2.pack_start(pbutton, True, True, 5)
-        box2.pack_start(mbutton, True, True, 5)
+        box2.pack_start(len_box, False, False, 2)
+        box2.pack_start(qbutton, True, True, 2)
+        box2.pack_start(lbutton, True, True, 2)
+        box2.pack_start(pbutton, True, True, 2)
+        box2.pack_start(mbutton, True, True, 2)
 
-        self.settings_dialog.action_area.add(box2)
+        parea = PannableArea()
+        parea.add_with_viewport(box2)
+        parea.set_size_request(750, 330)   
+        
+        self.settings_dialog.action_area.add(parea)
         self.settings_dialog.show_all()
 
     def menu_settings_toggled(self, button, setting):
@@ -306,6 +338,8 @@ class BaasGui(object):
         if setting == 'use_proxy':
             hildon_banner_show_information(self.window, "",
                 "You must restart the application before the new setting will take effect.")
+        elif setting == 'hide_quick':
+            self.rebuild_start_screen()
 
     def menu_select_history_len(self):
         ''' get a picker for history length '''
@@ -344,14 +378,14 @@ class BaasGui(object):
         self.state.save()
 
     def show_service_window(self, widget, service_name):
-
         self.input_command = service_name
         self.input_buffer = ''
         self.input_page = 1
         self.reload_results = None
         self.output_result = 'result'
 
-        self.service_win = StackableWindow()
+        self.service_win = StackableWindow() 
+        self.service_win.set_border_width(2)
         self.service_win.set_title(wording.get(service_name))
 
         # fill text entry with last search
@@ -408,6 +442,22 @@ class BaasGui(object):
 
         self.service_win.add(self.table)
         self.service_win.show_all()
+        
+        self.handle_quick_search()
+
+    def handle_quick_search(self):
+        ''' performs quick search '''
+        quick_search = self.quick_entry.get_text()
+        if quick_search != '': 
+            if self.input_command == 'tlate': 
+                self.input_buffer = quick_search
+                quick_buffer = TextBuffer()
+                quick_buffer.set_text(quick_search)
+                self.textentry.set_buffer(quick_buffer)
+            else: 
+                self.entry.set_text(quick_search)
+            self.quick_entry.set_text('')                
+            self.trigger_request()        
 
     def get_service_default_label(self):
 
@@ -1121,6 +1171,7 @@ class BaasGui(object):
         ''' renders a search reult list '''
         self.reload_results = None
         parea = PannableArea()
+        parea.set_property('initial-hint',False)
         self.result_selector = GtkTreeView(HILDON_UI_MODE_NORMAL)
         if self.state.direct_linkage:
             self.result_selector.connect("row-activated", self.result_selection_changed)

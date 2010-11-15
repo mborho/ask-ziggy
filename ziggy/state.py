@@ -22,6 +22,7 @@ class AppState(object):
         self.direct_linkage = False
         self.use_proxy = False
         self.mobilizer = False
+        self.hide_quick = False
         self.history_len = 10
         self.buffers = {}
         self.langs = {}
@@ -65,6 +66,7 @@ class AppState(object):
             self.direct_linkage = data.get('direct_linkage', self.direct_linkage)
             self.use_proxy = data.get('use_proxy', self.use_proxy)
             self.mobilizer = data.get('mobilizer', self.mobilizer)
+            self.hide_quick = data.get('hide_quick', self.hide_quick)
             self.history_len = data.get('history_len', self.history_len)
             self.default_langs = data.get('default_langs', {})
             self.services_active = data.get('services_active',self.services_active) 
@@ -79,7 +81,8 @@ class AppState(object):
             'history':self.history, 'history_len': self.history_len,
             'services_active': self.services_active,  'services':self.services,
             'direct_linkage': self.direct_linkage, 'use_proxy':self.use_proxy, 
-            'default_langs': self.default_langs, 'mobilizer':self.mobilizer}
+            'default_langs': self.default_langs, 'mobilizer':self.mobilizer,
+            'hide_quick': self.hide_quick}
         f = open(self.config_file,'w')
         simplejson.dump(state, f)
         f.close()
