@@ -109,17 +109,22 @@ class BaasGui(object):
         self.window.set_app_menu(menu)
 
         self.box = self.get_services_main()
-        self.window.add(self.box)
+        self.window.add(self.box)                
+         
+        self.window.set_events(gdk.KEY_PRESS_MASK)
+        self.window.connect("key_press_event", self.event_enter_key_win)
+        
         self.window.show()
 
     def get_services_main(self):
+        self.input_command = None
         box = HBox(False, 4)
         self.panned_window = PannableArea()
         self.panned_window.set_border_width(0)
         self.panned_window.set_property('vscrollbar-policy',POLICY_NEVER)
         self.panned_window.show()
         self.services_box = self.get_services_box()
-        self.panned_window.add_with_viewport(self.services_box)        
+        self.panned_window.add_with_viewport(self.services_box)                
         box.pack_start(self.panned_window, True, True, 0)
         box.show()                                 
         return box       
@@ -134,12 +139,12 @@ class BaasGui(object):
             # enable focus for quick search
             def quick_focus_grab(quick_entry):
                 quick_entry.set_property("can-focus", True)
-                
+            
             self.quick_entry = Entry(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)                       
             self.quick_entry.set_placeholder('quick search')               
             self.quick_entry.set_property("can-focus", False) # no focus 
             self.quick_entry.connect("grab-focus", quick_focus_grab)
-            self.quick_entry.show()                    
+            self.quick_entry.show()                
             services_box.pack_start(self.quick_entry, True, True, 0)                                                 
             button_style_flip = 4
             
@@ -896,8 +901,14 @@ class BaasGui(object):
         self.button.emit('clicked')
         self.button.emit('pressed')
 
-    def event_enter_key(self, widget, event):
-        ''' handles enter key '''
+    def event_enter_key_win(self, widget, event):
+        ''' handles enter key '''        
+        if not self.state.hide_quick:
+            self.quick_entry.set_property("can-focus", True)
+            self.quick_entry.set_property("is-focus", True)        
+                
+    def event_enter_key(self, widget, event):        
+        ''' handles enter key in service'''  
         if event.hardware_keycode in [36,104]:
             self.trigger_request()
 
