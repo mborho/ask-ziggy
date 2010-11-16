@@ -17,6 +17,7 @@ import gobject
 import socket
 import re
 import os.path
+import pango
 from gconf import client_get_default
 from urllib2 import URLError
 from ziggy.languages import Languages
@@ -139,10 +140,14 @@ class BaasGui(object):
             # enable focus for quick search
             def quick_focus_grab(quick_entry):
                 quick_entry.set_property("can-focus", True)
+                font_desc = pango.FontDescription(None)
+                self.quick_entry.modify_font(font_desc)
             
             self.quick_entry = Entry(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)                       
             self.quick_entry.set_placeholder('quick search')               
             self.quick_entry.set_property("can-focus", False) # no focus 
+            font_desc = pango.FontDescription('italic')
+            self.quick_entry.modify_font(font_desc)
             self.quick_entry.connect("grab-focus", quick_focus_grab)
             self.quick_entry.show()                
             services_box.pack_start(self.quick_entry, True, True, 0)                                                 
