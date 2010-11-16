@@ -144,7 +144,7 @@ class BaasGui(object):
                 self.quick_entry.modify_font(font_desc)
             
             self.quick_entry = Entry(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)                       
-            self.quick_entry.set_placeholder('quick search')               
+            self.quick_entry.set_placeholder('Quick Search')               
             self.quick_entry.set_property("can-focus", False) # no focus 
             font_desc = pango.FontDescription('italic')
             self.quick_entry.modify_font(font_desc)
