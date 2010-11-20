@@ -33,8 +33,8 @@ Rectangle {
                 onClicked: serviceInput.selectOption()
             }
             gradient: Gradient {
-                GradientStop {id:option1; position: 0;color: "lightgrey"}
-                GradientStop {id:option2; position: 1;color: "grey"}
+                GradientStop {id:option1; position: 0;color: screen.gradientColorStart}
+                GradientStop {id:option2; position: 1;color: screen.gradientColorEnd}
             }
             states: [
                 State {
@@ -60,8 +60,8 @@ Rectangle {
                 onClicked: serviceInput.askZiggy()
             }
             gradient: Gradient {
-                GradientStop {id:go1;position: 0;color: "lightgrey"}
-                GradientStop {id:go2;position: 1;color: "grey"}
+                GradientStop {id:go1;position: 0;color: screen.gradientColorStart}
+                GradientStop {id:go2;position: 1;color: screen.gradientColorEnd}
             }
             states: [
                 State {

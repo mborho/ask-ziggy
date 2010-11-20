@@ -2,6 +2,8 @@ import Qt 4.7
 
 Item {
     id: screen;
+    property string gradientColorStart: "lightgrey"
+    property string gradientColorEnd: "grey"
 
     function showServiceView(command) {
         console.log(command)

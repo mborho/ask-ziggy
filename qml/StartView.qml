@@ -42,8 +42,8 @@ Rectangle {
                     onReleased: parent.serviceClicked(parent)
                 }
                 gradient: Gradient {
-                    GradientStop {id:stop1;position: 0;color: "lightgrey"}
-                    GradientStop {id:stop2;position: 1;color: "grey"}
+                    GradientStop {id:stop1;position: 0;color: screen.gradientColorStart}
+                    GradientStop {id:stop2;position: 1;color: screen.gradientColorEnd}
                 }
                 states: [
                     State {

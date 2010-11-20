@@ -26,8 +26,8 @@ Rectangle {
                 onClicked: serviceView.showSettings()
             }
             gradient: Gradient {
-                GradientStop {id:settings1;position: 0;color: "lightgrey"}
-                GradientStop {id:settings2;position: 1;color: "grey"}
+                GradientStop {id:settings1;position: 0;color: screen.gradientColorStart}
+                GradientStop {id:settings2;position: 1;color: screen.gradientColorEnd}
             }
             states: [
                 State {
@@ -53,8 +53,8 @@ Rectangle {
                 onClicked: serviceView.showHistory()
             }
             gradient: Gradient {
-                GradientStop {id:history1;position: 0;color: "lightgrey"}
-                GradientStop {id:history2;position: 1;color: "grey"}
+                GradientStop {id:history1;position: 0;color: screen.gradientColorStart}
+                GradientStop {id:history2;position: 1;color: screen.gradientColorEnd}
             }
             states: [
                 State {
@@ -80,8 +80,8 @@ Rectangle {
                 onClicked: screen.showServicesList()
             }
             gradient: Gradient {
-                GradientStop {id:back1;position: 0;color: "lightgrey"}
-                GradientStop {id:back2;position: 1;color: "grey"}
+                GradientStop {id:back1;position: 0;color: screen.gradientColorStart}
+                GradientStop {id:back2;position: 1;color: screen.gradientColorEnd}
             }
             states: [
                 State {
