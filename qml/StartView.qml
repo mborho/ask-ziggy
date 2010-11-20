@@ -36,25 +36,25 @@ Rectangle {
                         text: '<b>'+name+'</b> '
                     }
                 }
-                MouseArea { anchors.fill: parent; onClicked: parent.serviceClicked(parent) }
+                MouseArea {
+                    id: mouseArea
+                    anchors.fill: parent
+                    onReleased: parent.serviceClicked(parent)
+                }
                 gradient: Gradient {
                     GradientStop {id:stop1;position: 0;color: "lightgrey"}
                     GradientStop {id:stop2;position: 1;color: "grey"}
-
                 }
                 states: [
                     State {
                         name: 'clicked'
-                        //when: column.isSelected == true
+                        when: mouseArea.pressed
                         PropertyChanges { target: stop1; position:1}
                         PropertyChanges { target: stop2; position:0 }
                     }
                 ]
                 function serviceClicked(parent) {
-//                        parent.height = 100'
-                    parent.state = "clicked"
-                    serviceText.text = 'Loading....'+command
-                    screen.loadServiceView(command)
+                    screen.showServiceView(command)
                 }
             }
 
