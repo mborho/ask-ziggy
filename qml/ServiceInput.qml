@@ -13,12 +13,15 @@ Rectangle {
     id: serviceInput
     parent: serviceView
     width: parent.width
-    height: 50
+    height: 70
     Row {
         id: serviceInputRow
         height: parent.height
         width:parent.width;
-        TextInput { width:parent.width/8*3;  height: parent.height }
+        TextInput {
+            width:parent.width/8*3
+            height: parent.height
+        }
         Rectangle {
             id: serviceInputOption
             width:parent.width/8*3

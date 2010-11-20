@@ -4,7 +4,7 @@ Rectangle {
     id: serviceToolbar
     parent: serviceView
     width: parent.width
-    height: 50
+    height: 45
 
     Row {
         id: serviceToolbarRow
