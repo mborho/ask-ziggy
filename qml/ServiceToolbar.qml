@@ -23,7 +23,7 @@ Rectangle {
             MouseArea {
                 id: mouseAreaSettings
                 anchors.fill: parent
-                onClicked: screen.dummy()
+                onClicked: serviceView.showSettings()
             }
             gradient: Gradient {
                 GradientStop {id:settings1;position: 0;color: "lightgrey"}
@@ -37,7 +37,6 @@ Rectangle {
                     PropertyChanges { target: settings2; position:0 }
                 }
             ]
-
         }
 
         Rectangle {
@@ -51,7 +50,7 @@ Rectangle {
             MouseArea {
                 id: mouseAreaHistory
                 anchors.fill: parent
-                onClicked: screen.dummy()
+                onClicked: serviceView.showHistory()
             }
             gradient: Gradient {
                 GradientStop {id:history1;position: 0;color: "lightgrey"}
@@ -65,7 +64,6 @@ Rectangle {
                     PropertyChanges { target: history2; position:0 }
                 }
             ]
-
         }
 
         Rectangle {
@@ -93,7 +91,7 @@ Rectangle {
                     PropertyChanges { target: back2; position:0 }
                 }
             ]
-
         }
+
     }
 }

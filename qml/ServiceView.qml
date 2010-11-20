@@ -19,4 +19,11 @@ Column {
         id:serviceContent
     }
 
+    function showHistory() {
+        console.log("show history")
+    }
+
+    function showSettings() {
+        console.log("show settings")
+    }
 }
