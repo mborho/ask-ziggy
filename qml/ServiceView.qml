@@ -26,4 +26,8 @@ Column {
     function showSettings() {
         console.log("show settings")
     }
+
+    function toolbarFuncCaller(name) {
+        eval(name)()
+    }
 }
