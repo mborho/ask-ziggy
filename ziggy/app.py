@@ -393,7 +393,7 @@ class BaasGui(object):
         self.input_page = 1
         self.reload_results = None
         self.output_result = 'result'
-        quick_search = self.quick_entry.get_text() if self.quick_entry else ''
+        quick_search = self.quick_entry.get_text().strip() if self.quick_entry else ''
 
         self.service_win = StackableWindow() 
         self.service_win.set_border_width(2)
