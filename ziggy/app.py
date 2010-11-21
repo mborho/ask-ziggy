@@ -393,6 +393,7 @@ class BaasGui(object):
         self.input_page = 1
         self.reload_results = None
         self.output_result = 'result'
+        quick_search = self.quick_entry.get_text() if self.quick_entry else ''
 
         self.service_win = StackableWindow() 
         self.service_win.set_border_width(2)
@@ -423,10 +424,10 @@ class BaasGui(object):
             input_box = self.input_metacritic(self.entry)
         elif self.input_command == "tlate":
             # text input
-            self.textentry = TextView()
-            self.input_buffer = last_input
+            self.textentry = TextView()            
             old_buffer = TextBuffer()
-            old_buffer.set_text(last_input)
+            self.input_buffer = quick_search if quick_search != '' else last_input
+            old_buffer.set_text(self.input_buffer)
             self.textentry.set_buffer(old_buffer)
 
             buffer = self.textentry.get_buffer()
@@ -453,18 +454,12 @@ class BaasGui(object):
         self.service_win.add(self.table)
         self.service_win.show_all()
         
-        self.handle_quick_search()
-
-    def handle_quick_search(self):
+        self.handle_quick_search(quick_search)
+        
+    def handle_quick_search(self, quick_search):
         ''' performs quick search '''
-        quick_search = self.quick_entry.get_text()
         if quick_search != '': 
-            if self.input_command == 'tlate': 
-                self.input_buffer = quick_search
-                quick_buffer = TextBuffer()
-                quick_buffer.set_text(quick_search)
-                self.textentry.set_buffer(quick_buffer)
-            else: 
+            if self.input_command  != 'tlate': 
                 self.entry.set_text(quick_search)
             self.quick_entry.set_text('')                
             self.trigger_request()        
