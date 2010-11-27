@@ -6,4 +6,6 @@ Rectangle {
     color: "yellow";
     width: parent.width
     height: parent.height-50
+
+
 }
