@@ -305,6 +305,13 @@ class BaasGui(object):
         qbutton.set_active(self.state.hide_quick)
         
         # service check button
+        mbutton = CheckButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)
+        mbutton.set_label('use google mobilizer to open webpages')
+        mbutton.set_size_request(750, 70)
+        mbutton.set_active(self.state.mobilizer)
+        mbutton.connect("toggled", self.menu_settings_toggled, 'mobilizer')        
+        
+        # service check button
         lbutton = CheckButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)
         lbutton.set_label('open urls directly in browser')
         lbutton.set_size_request(750, 70)
@@ -317,23 +324,16 @@ class BaasGui(object):
         pbutton.set_size_request(750, 70)
         pbutton.set_active(self.state.use_proxy)
         pbutton.connect("toggled", self.menu_settings_toggled, 'use_proxy')
-
-        # service check button
-        mbutton = CheckButton(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)
-        mbutton.set_label('use google mobilizer to open webpages')
-        mbutton.set_size_request(750, 70)
-        mbutton.set_active(self.state.mobilizer)
-        mbutton.connect("toggled", self.menu_settings_toggled, 'mobilizer')
         
         # history len
         len_box = self.menu_select_history_len()
 
         box2 = VBox(False)
-        box2.pack_start(len_box, False, False, 2)
+        box2.pack_start(len_box, False, False, 2)        
         box2.pack_start(qbutton, True, True, 2)
-        box2.pack_start(lbutton, True, True, 2)
-        box2.pack_start(pbutton, True, True, 2)
         box2.pack_start(mbutton, True, True, 2)
+        box2.pack_start(lbutton, True, True, 2)
+        box2.pack_start(pbutton, True, True, 2)        
 
         parea = PannableArea()
         parea.add_with_viewport(box2)
