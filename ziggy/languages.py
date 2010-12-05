@@ -293,6 +293,7 @@ class Languages(object):
     def __init__(self):
         self.imdb = imdb_languages
         self.wikipedia = wikipedia_languages
+        self.wiktionary = wiktionary_languages
         self.amazon = amazon_sites
         self.music = music_types
         self.maemo = maemo_types
