@@ -67,6 +67,7 @@ about_txt = """
 Ask Ziggy - Search for news, weather, translations, reviews,\t\t
  movies, wikipedia or wiktionary entries and more...\n
 <small>&#169; 2010 Martin Borho &lt;martin@borho.net&gt;\t\t\t\n
+Thanks to maemo.org and to Laurent Gautrot for adding wiktionary!\t\t\n
 License: GNU General Public License (GPL) Version 3
 Source: <span color="orange">http://github.com/mborho/ask-ziggy</span></small>
 """
