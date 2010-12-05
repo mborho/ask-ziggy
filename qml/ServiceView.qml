@@ -20,10 +20,15 @@ Column {
     }
 
     function showHistory() {
-        console.log("show history")
+        serviceOptionDialog.show("show history")
     }
 
     function showSettings() {
-        console.log("show settings")
+        serviceOptionDialog.show("show settings")
     }
+
+    function toolbarFuncCaller(name) {
+        eval(name)()
+    }
+
 }

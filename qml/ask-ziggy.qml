@@ -28,8 +28,15 @@ Item {
         id:serviceView
     }  
 
+    ServiceOptionDialog {
+            id: serviceOptionDialog
+//            anchors.centerIn: serviceView
+            z: 100
+    }
+
     transitions: Transition {
         ColorAnimation {duration: 1000 }
     }
 
 }
+
