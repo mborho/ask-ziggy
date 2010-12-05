@@ -223,6 +223,40 @@ wikipedia_languages = [
 ('zh','中文')
 ]
 
+wiktionary_languages = [
+('ar','العربية'),
+('ca','Català'),
+('cs','Česky'),
+('da','Dansk'),
+('de','Deutsch'),
+('en','English'),
+('es','Español'),
+('eo','Esperanto'),
+('fr','Français'),
+('ko','한국어'),
+('id','Bahasa Indonesia'),
+('it','Italiano'),
+('he','עברית'),
+('lt','Lietuvių'),
+('hu','Magyar'),
+('nl','Nederlands'),
+('ja','日本語'),
+('no','Norsk (bokmål)'),
+('pl','Polski'),
+('pt','Português'),
+('ru','Русский'),
+('ro','Română'),
+('sk','Slovenčina'),
+('sr','Српски'),
+('fi','Suomi'),
+('sv','Svenska'),
+('tr','Türkçe'),
+('uk','Українська'),
+('vi','Tiếng Việt'),
+('vo','Volapük'),
+('zh','中文')
+]
+
 imdb_languages = [
 ('en','English'),
 ('de','Deutsch'),
