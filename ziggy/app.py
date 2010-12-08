@@ -121,7 +121,26 @@ class BaasGui(object):
 
     def get_services_main(self):
         self.input_command = None
-        box = HBox(False, 4)
+        box = VBox(False, 4)
+        
+        # quick search entry    
+        self.quick_entry = Entry(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)                       
+        self.quick_entry.set_placeholder('Quick Search')               
+        self.quick_entry.set_property("can-focus", False) # no focus 
+        font_desc = pango.FontDescription('italic')
+        self.quick_entry.modify_font(font_desc)           
+        box.pack_start(self.quick_entry, False, False, 0)       
+
+        if not self.state.hide_quick:
+            # enable focus for quick search
+            def quick_focus_grab(quick_entry):
+                quick_entry.set_property("can-focus", True)
+                font_desc = pango.FontDescription(None)
+                self.quick_entry.modify_font(font_desc)
+            
+            self.quick_entry.connect("grab-focus", quick_focus_grab)     
+            self.quick_entry.show()            
+            
         self.panned_window = PannableArea()
         self.panned_window.set_border_width(0)
         self.panned_window.set_property('vscrollbar-policy',POLICY_NEVER)
@@ -137,22 +156,8 @@ class BaasGui(object):
         services_box.set_border_width(0)
         button_style_flip = 5
         
-        # quick search entry    
-        if not self.state.hide_quick:
-            # enable focus for quick search
-            def quick_focus_grab(quick_entry):
-                quick_entry.set_property("can-focus", True)
-                font_desc = pango.FontDescription(None)
-                self.quick_entry.modify_font(font_desc)
-            
-            self.quick_entry = Entry(HILDON_SIZE_AUTO_WIDTH | HILDON_SIZE_FINGER_HEIGHT)                       
-            self.quick_entry.set_placeholder('Quick Search')               
-            self.quick_entry.set_property("can-focus", False) # no focus 
-            font_desc = pango.FontDescription('italic')
-            self.quick_entry.modify_font(font_desc)
-            self.quick_entry.connect("grab-focus", quick_focus_grab)
-            self.quick_entry.show()                
-            services_box.pack_start(self.quick_entry, True, True, 0)                                                 
+        # buttons height when no quick search
+        if not self.state.hide_quick:                                           
             button_style_flip = 4
             
         #set button height
@@ -291,7 +296,7 @@ class BaasGui(object):
         self.services_box.destroy()
         self.services_box = self.get_services_box()
         self.panned_window.add_with_viewport(self.services_box)        
-        self.state.save()
+        self.state.save()        
 
     def menu_settings(self, button):          
         self.settings_dialog = Dialog()
@@ -351,7 +356,13 @@ class BaasGui(object):
             hildon_banner_show_information(self.window, "",
                 "You must restart the application before the new setting will take effect.")
         elif setting == 'hide_quick':
+            if active: 
+                self.quick_entry.hide()    
+                self.quick_entry.set_text('')
+            else: 
+                self.quick_entry.show()
             self.rebuild_start_screen()
+            
 
     def menu_select_history_len(self):
         ''' get a picker for history length '''
@@ -395,7 +406,7 @@ class BaasGui(object):
         self.input_page = 1
         self.reload_results = None
         self.output_result = 'result'
-        quick_search = self.quick_entry.get_text().strip() if self.quick_entry else ''
+        quick_search = self.quick_entry.get_text().strip()
 
         self.service_win = StackableWindow() 
         self.service_win.set_border_width(2)
