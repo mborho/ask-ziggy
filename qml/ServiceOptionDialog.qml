@@ -1,5 +1,5 @@
 import Qt 4.7
-import "options" as Options
+import "options/serviceOptions.js" as Options
 
 Rectangle {
     id: serviceOptionDialog
@@ -12,10 +12,23 @@ Rectangle {
     function show(text) {
 //        dialogText.text = text;
         serviceOptionDialog.opacity = 0.7;
+        add_option();
     }
 
     function hide() {
         serviceOptionDialog.opacity = 0;
+    }
+
+
+    function add_option() {
+        var sOptions = Options.ServiceOptions.get(screen.currentService,-1,'');
+        console.log(sOptions);
+        for(var opt in sOptions) {
+            serviceOptionModel.append({
+                "ident": opt,
+                "name": sOptions[opt],
+            })
+        }
     }
 
 //    Text {
@@ -29,10 +42,18 @@ Rectangle {
 //        onClicked: hide();
 //    }
 
+    ListModel {
+        id: serviceOptionModel
+//        ListElement {
+//            ident: 'option1'
+//            name:'Option 1'
+//        }
+    }
+
     ListView {
         id: serviveOptionListView
         anchors.fill: parent
-        model: Options.ServiceOptionModel {}
+        model: serviceOptionModel
         delegate: serviceOptionDelegate
         focus: true
 
@@ -81,5 +102,5 @@ Rectangle {
 
         }
 
-    }
+    }    
 }

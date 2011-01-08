@@ -4,11 +4,13 @@ Item {
     id: screen;
     property string gradientColorStart: "lightgrey"
     property string gradientColorEnd: "grey"
+    property string currentService: ""
 
     function showServiceView(command) {
         console.log(command)
         startView.visible =  false
         serviceView.visible = true
+        screen.currentService = command
     }
 
     function showServicesList() {
