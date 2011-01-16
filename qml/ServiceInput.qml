@@ -30,6 +30,8 @@ Rectangle {
 
     function askZiggy() {
         console.log("ask ziggy")
+        console.log(screen.currentService)
+        console.log(screen.currentServiceOption1)
     }
 
     function selectOption() {

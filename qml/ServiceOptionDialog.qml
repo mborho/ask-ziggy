@@ -23,6 +23,7 @@ Rectangle {
     function add_option() {
         var sOptions = Options.ServiceOptions.get(screen.currentService,-1,'');
         console.log(sOptions);
+        serviceOptionModel.clear()
         for(var opt in sOptions) {
             serviceOptionModel.append({
                 "ident": opt,
@@ -96,7 +97,7 @@ Rectangle {
                 ]
                 function optionClicked(ident) {
                     serviceOptionDialog.hide()
-                    console.log('option '+ident+' selected')
+                    screen.currentServiceOption1 = ident
                 }
             }
 

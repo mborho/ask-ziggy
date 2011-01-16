@@ -5,17 +5,22 @@ Item {
     property string gradientColorStart: "lightgrey"
     property string gradientColorEnd: "grey"
     property string currentService: ""
+    property string currentServiceOption1: ""
+    property string currentServiceOption2: ""
 
     function showServiceView(command) {
         console.log(command)
+        screen.currentService = command
         startView.visible =  false
         serviceView.visible = true
-        screen.currentService = command
     }
 
     function showServicesList() {
         startView.visible =  true
         serviceView.visible = false
+        screen.currentService = ""
+        screen.currentServiceOption1 = ""
+        screen.currentServiceOption2 = ""
     }
 
     function dummy() {
@@ -41,4 +46,5 @@ Item {
     }
 
 }
+
 
