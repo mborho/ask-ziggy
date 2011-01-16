@@ -16,25 +16,16 @@ Rectangle {
         }
 
         RectangleButton {
-            clickAction: "serviceInput.selectOption"
+            clickAction: "serviceView.selectInputOption"
             width: parent.width/8*3
             buttonText: "Option"
         }
 
         RectangleButton {
-            clickAction: "serviceInput.askZiggy"
+            clickAction: "serviceView.askZiggy"
             width: parent.width/4
             buttonText: "go"
         }
     }
 
-    function askZiggy() {
-        console.log("ask ziggy")
-        console.log(screen.currentService)
-        console.log(screen.currentServiceOption1)
-    }
-
-    function selectOption() {
-        serviceOptionDialog.show("service_option")
-    }
 }

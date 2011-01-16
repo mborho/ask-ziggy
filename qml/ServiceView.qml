@@ -31,4 +31,14 @@ Column {
         eval(name)()
     }
 
+    function selectInputOption() {
+        serviceOptionDialog.show("service_option")
+    }
+
+    function askZiggy() {
+        console.log("ask ziggy")
+        console.log(screen.currentService)
+        console.log(screen.currentServiceOption1)
+    }
+
 }
