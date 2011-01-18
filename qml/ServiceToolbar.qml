@@ -13,12 +13,12 @@ Rectangle {
         width: parent.width;
 
         RectangleButton {
-            clickAction: "showSettings"
+            clickAction: "Ziggy.showSettings"
             buttonText: "Settings"
         }
 
         RectangleButton {
-            clickAction: "showHistory"
+            clickAction: "Ziggy.showHistory"
             buttonText: "History"
         }
 

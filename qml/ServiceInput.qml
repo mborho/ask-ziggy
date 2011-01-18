@@ -16,13 +16,13 @@ Rectangle {
         }
 
         RectangleButton {
-            clickAction: "serviceView.selectInputOption"
+            clickAction: "Ziggy.selectInputOption"
             width: parent.width/8*3
             buttonText: "Option"
         }
 
         RectangleButton {
-            clickAction: "serviceView.askZiggy"
+            clickAction: "Ziggy.askZiggy"
             width: parent.width/4
             buttonText: "go"
         }

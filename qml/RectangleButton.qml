@@ -1,4 +1,5 @@
 import Qt 4.7
+import "Ziggy.js" as Ziggy
 
 Rectangle {
 //    signal clicked
@@ -14,7 +15,7 @@ Rectangle {
     MouseArea {
         id: mouse
         anchors.fill: parent
-        onClicked: serviceView.toolbarFuncCaller(clickAction)
+        onClicked: Ziggy.toolbarFuncCaller(clickAction)
     }
     gradient: Gradient {
         GradientStop {id:settings1;position: 0;color: screen.gradientColorStart}

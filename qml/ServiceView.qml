@@ -13,32 +13,27 @@ Column {
 
     ServiceInput {
         id:serviceInput
+        visible:false;
+    }
+
+    ServiceInputTlate {
+        id:serviceInputTlate
+        visible:false;
     }
 
     ServiceContent {
         id:serviceContent
     }
 
-    function showHistory() {
-        serviceOptionDialog.show("show history")
-    }
-
-    function showSettings() {
-        serviceOptionDialog.show("show settings")
-    }
-
-    function toolbarFuncCaller(name) {
-        eval(name)()
-    }
-
-    function selectInputOption() {
-        serviceOptionDialog.show("service_option")
-    }
-
-    function askZiggy() {
-        console.log("ask ziggy")
-        console.log(screen.currentService)
-        console.log(screen.currentServiceOption1)
+    function loadServiceView(command) {
+        serviceInput.visible = false;
+        serviceInputTlate.visible = false;
+        if(command == "tlate") {
+            serviceInputTlate.visible = true;
+        } else {
+            serviceInput.visible = true;
+        }
+        serviceView.visible = true;
     }
 
 }

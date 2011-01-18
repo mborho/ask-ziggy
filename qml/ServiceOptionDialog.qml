@@ -9,10 +9,9 @@ Rectangle {
     color: screen.gradientColorStart
     anchors.centerIn: parent
 
-    function show(text) {
-//        dialogText.text = text;
+    function show(option_name) {
         serviceOptionDialog.opacity = 0.7;
-        add_option();
+        add_option(option_name);
     }
 
     function hide() {
@@ -20,8 +19,8 @@ Rectangle {
     }
 
 
-    function add_option() {
-        var sOptions = Options.ServiceOptions.get(screen.currentService,-1,'');
+    function add_option(option_name) {
+        var sOptions = Options.ServiceOptions.get(option_name,-1,'');
         console.log(sOptions);
         serviceOptionModel.clear()
         for(var opt in sOptions) {

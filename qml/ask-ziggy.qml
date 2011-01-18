@@ -1,4 +1,5 @@
 import Qt 4.7
+import "Ziggy.js" as Ziggy
 
 Item {
     id: screen;
@@ -9,10 +10,10 @@ Item {
     property string currentServiceOption2: ""
 
     function showServiceView(command) {
-        console.log(command)
-        screen.currentService = command
-        startView.visible =  false
-        serviceView.visible = true
+        console.log(command);
+        screen.currentService = command;
+        startView.visible =  false;
+        serviceView.loadServiceView(command)
     }
 
     function showServicesList() {
