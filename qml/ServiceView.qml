@@ -12,6 +12,7 @@ Column {
     property alias serviceTlateText: serviceInputTlate.inputText
     property alias serviceMetacriticText: serviceInputMetacritic.inputText
     property alias serviceDeliText: serviceInputDeli.inputText
+    property alias apiResponse: serviceContent.apiResponse
 
     ServiceToolbar {
         id:serviceToolbar
@@ -42,6 +43,7 @@ Column {
     }
 
     function loadServiceView(command) {
+        apiResponse = ''
         serviceInputText = ''
         serviceInput.visible = false;
         serviceInputTlate.visible = false;

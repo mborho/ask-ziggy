@@ -51,8 +51,27 @@ function build_term() {
     return term
 }
 
+function doApiCall(term) {
+    var doc = new XMLHttpRequest();
+    var url = screen.apiUrl+encodeURIComponent(term)
+    console.log(url)
+    doc.onreadystatechange = function() {
+        if (doc.readyState == XMLHttpRequest.DONE) {
+            var responseText = doc.responseText.replace(/^\ ?\(/, '').replace(/\)$/, '');
+            console.log(responseText)
+            var myJSON = JSON.parse(responseText);
+            serviceView.apiResponse = myJSON;
+            console.log(myJSON);
+        }
+    }
+    doc.open("GET", url);
+    doc.send();
+}
+
 function askZiggy() {
     var term = build_term()
-    if(term != '') console.log(term)
-
+    if(term != '') {
+        console.log(term)
+        doApiCall(term)
+    }
 }

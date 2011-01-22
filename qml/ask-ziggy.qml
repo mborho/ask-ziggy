@@ -3,6 +3,7 @@ import "Ziggy.js" as Ziggy
 
 Item {
     id: screen;
+    property string apiUrl: 'http://ask-ziggy.appspot.com/api/query?&term=';
     property string gradientColorStart: "lightgrey"
     property string gradientColorEnd: "grey"
     property string currentService: ""
