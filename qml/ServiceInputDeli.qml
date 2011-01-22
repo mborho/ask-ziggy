@@ -13,10 +13,8 @@ Rectangle {
         height: parent.height
         width:parent.width;
 
-        TextInput {
+        ServiceTextInput {
             id:textInput
-            width:parent.width/4*2
-            height: parent.height
         }
 
         RectangleButton {
@@ -33,12 +31,11 @@ Rectangle {
             }
         }
 
-        RectangleButton {
-            clickAction: "Ziggy.askZiggy"
-            width: parent.width/8*1
-            buttonText: "go"
+        ServiceInputSubmit {
+
         }
     }
+
     function toggleDeliPopState() {
         if(deliPopState == false) {
             deliPopIcon.visible = true

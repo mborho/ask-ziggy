@@ -12,16 +12,13 @@ Rectangle {
         height: parent.height
         width:parent.width;
 
-        TextInput {
+        ServiceTextInput {
             id:textInput
-            width:parent.width/8*6
-            height: parent.height
+            width:parent.width/4*3
         }
 
-        RectangleButton {
-            clickAction: "Ziggy.askZiggy"
-            width: parent.width/4
-            buttonText: "go"
+        ServiceInputSubmit {
+            width:parent.width/4
         }
     }
 

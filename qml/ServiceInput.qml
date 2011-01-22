@@ -12,10 +12,8 @@ Rectangle {
         height: parent.height
         width:parent.width;
 
-        TextInput {
+        ServiceTextInput {
             id:textInput
-            width:parent.width/8*3
-            height: parent.height
         }
 
         RectangleButton {
@@ -25,10 +23,8 @@ Rectangle {
             buttonText: serviceView.optionText1
         }
 
-        RectangleButton {
-            clickAction: "Ziggy.askZiggy"
-            width: parent.width/4
-            buttonText: "go"
+        ServiceInputSubmit {
+
         }
     }
 

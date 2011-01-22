@@ -12,10 +12,12 @@ Rectangle {
         height: parent.height;
         width:parent.width;
 
-        TextInput {
+        TextEdit {
            id:textInput
            width:parent.width/8*4
            height: parent.height
+           wrapMode:TextEdit.WordWrap
+           verticalAlignment: TextEdit.AlignVCenter
         }
 
         Column {
@@ -35,11 +37,8 @@ Rectangle {
             }
         }
 
-        RectangleButton {
+        ServiceInputSubmit {
             width:parent.width/16*3
-            clickAction: "Ziggy.askZiggy"
-            height: parent.height
-            buttonText: "go"
         }
     }
 }
