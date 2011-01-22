@@ -38,7 +38,6 @@ Item {
 
     ServiceOptionDialog {
             id: serviceOptionDialog
-//            anchors.centerIn: serviceView
             z: 100
     }
 

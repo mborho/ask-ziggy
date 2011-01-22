@@ -8,20 +8,20 @@ Rectangle {
     opacity: 0
     color: screen.gradientColorStart
     anchors.centerIn: parent
+    property string selected_ident: ""
 
-    function show(option_name) {
+    function show(name) {
+        serviceOptionDialog.selected_ident = name
         serviceOptionDialog.opacity = 0.7;
-        add_option(option_name);
+        add_option(name);
     }
 
     function hide() {
         serviceOptionDialog.opacity = 0;
     }
 
-
     function add_option(option_name) {
         var sOptions = Options.ServiceOptions.get(option_name,-1,'');
-        console.log(sOptions);
         serviceOptionModel.clear()
         for(var opt in sOptions) {
             serviceOptionModel.append({
@@ -31,23 +31,8 @@ Rectangle {
         }
     }
 
-//    Text {
-//        id: dialogText
-//        anchors.centerIn: parent
-//        text: ""
-//    }
-
-//    MouseArea {
-//        anchors.fill: parent
-//        onClicked: hide();
-//    }
-
     ListModel {
         id: serviceOptionModel
-//        ListElement {
-//            ident: 'option1'
-//            name:'Option 1'
-//        }
     }
 
     ListView {
@@ -56,7 +41,6 @@ Rectangle {
         model: serviceOptionModel
         delegate: serviceOptionDelegate
         focus: true
-
     }
 
     Component {
@@ -80,7 +64,7 @@ Rectangle {
                 MouseArea {
                     id: mouseArea
                     anchors.fill: parent
-                    onReleased: parent.optionClicked(ident)
+                    onReleased: parent.optionClicked(ident, name)
                 }
                 gradient: Gradient {
                     GradientStop {id:stop1;position: 0;color: screen.gradientColorStart}
@@ -94,13 +78,17 @@ Rectangle {
                         PropertyChanges { target: stop2; position:0 }
                     }
                 ]
-                function optionClicked(ident) {
+                function optionClicked(ident, name) {
                     serviceOptionDialog.hide()
-                    screen.currentServiceOption1 = ident
+                    if(serviceOptionDialog.selected_ident == "tlate_to") {
+                        screen.currentServiceOption2 = ident
+                        serviceView.optionText2 = name
+                    } else {
+                        screen.currentServiceOption1 = ident
+                        serviceView.optionText1 = name
+                    }
                 }
             }
-
         }
-
     }    
 }

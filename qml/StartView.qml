@@ -26,13 +26,11 @@ Rectangle {
                 id: column
                 width: parent.width
                 height: parent.height
-//                    property bool isSelected: false
                 Column {
                     id: delegatorColumn
                     anchors.centerIn: parent
                     Text {
                         id: serviceText
-//                        color:"darkblue"
                         text: '<b>'+name+'</b> '
                     }
                 }
@@ -57,8 +55,6 @@ Rectangle {
                     screen.showServiceView(command)
                 }
             }
-
         }
-
     }
 }

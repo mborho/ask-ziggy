@@ -76,7 +76,6 @@ var ServiceOptions = function() {
 
         get : function(service, index, short) {
             var lang_list = ServiceOptions[service]
-            console.log(ServiceOptions);
             if( index > -1) {
                 return lang_list[index]
             } else if (short != '') {

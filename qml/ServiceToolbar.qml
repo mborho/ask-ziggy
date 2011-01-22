@@ -8,7 +8,6 @@ Rectangle {
 
     Row {
         id: serviceToolbarRow
-//            spacing: 2
         height: parent.height
         width: parent.width;
 

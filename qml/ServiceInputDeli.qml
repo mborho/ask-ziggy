@@ -6,6 +6,7 @@ Rectangle {
     width: parent.width
     height: 70
     property bool deliPopState: false
+    property alias inputText: textInput.text
 
     Row {
         id: serviceInputRow
@@ -13,6 +14,7 @@ Rectangle {
         width:parent.width;
 
         TextInput {
+            id:textInput
             width:parent.width/4*2
             height: parent.height
         }
@@ -26,7 +28,6 @@ Rectangle {
                 id:deliPopIcon
                 anchors.verticalCenter: parent.verticalCenter
                 x: parent.width/8
-//                anchors.fill: parent
                 source: "content/icons/ok.png"
                 visible:false
             }
@@ -40,11 +41,9 @@ Rectangle {
     }
     function toggleDeliPopState() {
         if(deliPopState == false) {
-            console.log('togglePopState activate')
             deliPopIcon.visible = true
             deliPopState = true
         } else {
-            console.log('togglePopState deactivate')
             deliPopIcon.visible = false
             deliPopState = false
         }
