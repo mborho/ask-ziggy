@@ -21,6 +21,16 @@ Column {
         visible:false;
     }
 
+    ServiceInputMetacritic {
+        id:serviceInputMetacritic
+        visible:false;
+    }
+
+    ServiceInputDeli {
+        id:serviceInputDeli
+        visible:false;
+    }
+
     ServiceContent {
         id:serviceContent
     }
@@ -28,8 +38,14 @@ Column {
     function loadServiceView(command) {
         serviceInput.visible = false;
         serviceInputTlate.visible = false;
+        serviceInputMetacritic.visible = false;
+        serviceInputDeli.visible = false;
         if(command == "tlate") {
             serviceInputTlate.visible = true;
+        } else if(command == "deli") {
+            serviceInputDeli.visible = true;
+        } else if(command=="metacritic"){
+            serviceInputMetacritic.visible = true;
         } else {
             serviceInput.visible = true;
         }
