@@ -4,7 +4,7 @@ Rectangle {
     id: serviceInputTlate
     parent: serviceView
     width: parent.width
-    height: 70
+    height: 100
     property alias inputText: textInput.text
 
     Row {
@@ -17,7 +17,6 @@ Rectangle {
            width:parent.width/8*4
            height: parent.height
            wrapMode:TextEdit.WordWrap
-           verticalAlignment: TextEdit.AlignVCenter
         }
 
         Column {
