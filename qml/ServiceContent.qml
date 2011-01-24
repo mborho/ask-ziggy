@@ -64,20 +64,25 @@ Rectangle {
                     id: delegatorColumn
                     x:10
                     y:10
+                    anchors.rightMargin:10
+                    width:parent.width
                     Text {
                         text: '<b>'+title+'</b>'
+                        width:parent.width-15
+                        wrapMode:Text.WordWrap
                     }
                     Text {
                         text: '<a href="'+url+'">'+url+'</a>'
-//                        horizontalAlignment: Text.AlignLeft
-//                        wrapMode:Text.WordWrap
+                        width:parent.width-15
+//                        elide:Text.ElideRight
+                        wrapMode:Text.WrapAnywhere
 //                        onLinkActivated: console.log(link + " link activated")
                     }
                     Text {
                         text:content
 //                        style: Text.Normal
-//                        wrapMode:Text.WordWrap
-//                        elide: Text.ElideRight
+                        wrapMode:Text.WordWrap
+                        width:parent.width-15
                     }
                 }
                 MouseArea {
