@@ -4,6 +4,7 @@ Rectangle {
     id: serviceContent
     width: parent.width
     height: parent.height-50
+    z:-1
     property variant apiResponse: ''
 
     Text {
@@ -12,9 +13,94 @@ Rectangle {
     }
 
     function getStartText() {
-        if(apiResponse != '') {
-            return JSON.stringify(apiResponse);
-        }
+//        if(apiResponse != '') {
+//            return JSON.stringify(apiResponse);
+//        }
         return ''
+    }
+
+    function renderResultList(option_name) {
+
+        serviceContentList.clear()
+        for(var x in apiResponse) {
+            var row = apiResponse[x]
+            serviceContentList.append({
+                "url": decodeURIComponent(row['url']),
+                "title": row['title'],
+                "content": row['content']
+            })
+        }
+    }
+
+    ListModel {
+        id: serviceContentList
+    }
+
+    ListView {
+        id: serviveContentListView
+        anchors.fill: parent
+        model: serviceContentList
+        delegate: serviceContentDelegate
+        focus: true
+        height:parent.height
+    }
+
+    Component {
+        id: serviceContentDelegate
+        Item {
+            width: parent.width
+            height: childrenRect.height
+            Rectangle {
+                id: column
+
+                border.color: "black"
+                border.width:3
+
+                radius: 5
+                width: parent.width
+                height: childrenRect.height
+                color: screen.gradientColorStart
+                Column {
+                    id: delegatorColumn
+                    x:10
+                    y:10
+                    Text {
+                        text: '<b>'+title+'</b>'
+                    }
+                    Text {
+                        text: '<a href="'+url+'">'+url+'</a>'
+//                        horizontalAlignment: Text.AlignLeft
+//                        wrapMode:Text.WordWrap
+//                        onLinkActivated: console.log(link + " link activated")
+                    }
+                    Text {
+                        text:content
+//                        style: Text.Normal
+//                        wrapMode:Text.WordWrap
+//                        elide: Text.ElideRight
+                    }
+                }
+                MouseArea {
+                    id: mouseArea
+                    anchors.fill: parent
+                    onReleased: parent.entryClicked(url)
+                }
+//                gradient: Gradient {
+//                    GradientStop {id:stop1;position: 0;color: screen.gradientColorStart}
+//                    GradientStop {id:stop2;position: 1;color: screen.gradientColorEnd}
+//                }
+                states: [
+                    State {
+                        name: 'clicked'
+                        when: mouseArea.pressed
+                        PropertyChanges { target: column; color:screen.gradientColorEnd}
+//                        PropertyChanges { target: stop2; position:0 }
+                    }
+                ]
+                function entryClicked(url) {
+                    console.log(url)
+                }
+            }
+        }
     }
 }

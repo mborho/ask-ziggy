@@ -61,7 +61,8 @@ function doApiCall(term) {
             console.log(responseText)
             var myJSON = JSON.parse(responseText);
             serviceView.apiResponse = myJSON;
-            console.log(myJSON);
+            serviceContent.renderResultList()
+            //console.log(myJSON);
         }
     }
     doc.open("GET", url);
