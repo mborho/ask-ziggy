@@ -51,6 +51,56 @@ function build_term() {
     return term
 }
 
+function handle_music(data) {
+    var _extract_hits = function(res) {
+      if(res['name']) return [res];
+      else return res;
+    }
+    var _get_artist = function(row) {
+      if(row['Artist'][0]) return row['Artist'][0];
+      else return row['Artist'];
+    }
+    var list = Array();
+    if(data['Artist']) {
+        var artists = _extract_hits(data['Artist']);
+        for(var a in artists) {
+            var entry = Object();
+            entry['url'] = decodeURIComponent(artists[a]['url']);
+            entry['title'] = artists[a]['name'];
+            entry['content'] = '';
+            list[a] = entry;
+      }
+    } else if (data['Release']) {
+        var releases = _extract_hits(data['Release']);
+        for(var r in releases) {
+            var entry = Object();
+            entry['url'] = decodeURIComponent(releases[r]['url']);
+            var artist = _get_artist(releases[r])
+            entry['title'] = '"'+releases[r]['title']+'" by '+artist['name'];
+            entry['content'] = 'Year: '+releases[r]['releaseYear']+'<br/>Label: '+releases[r]['label'];
+            list[r] = entry;
+        }
+        console.log(list);
+    } else if (data['Track']) {
+        var tracks = _extract_hits(data['Track']);
+        for(var t in tracks) {
+            var entry = Object();
+            entry['url'] = decodeURIComponent(tracks[t]['url']);
+            var artist = _get_artist(tracks[t])
+            entry['title'] = '"'+tracks[t]['title']+'" ('+tracks[t]['releaseYear']+') by '+artist['name'];
+            var content = ''
+            try {
+                var album = tracks[t]['Album']['Release'];
+                if(album['title']) content += 'Album: '+album['title'];
+                if(album['label']) content += '<br/>Label: '+ album['label'];
+            } catch(err) {};
+            entry['content'] = content;
+            list[t] = entry;
+        }
+    }
+    return list;
+}
+
 function doApiCall(term) {
     var doc = new XMLHttpRequest();
     var url = screen.apiUrl+encodeURIComponent(term)
@@ -58,11 +108,12 @@ function doApiCall(term) {
     doc.onreadystatechange = function() {
         if (doc.readyState == XMLHttpRequest.DONE) {
             var responseText = doc.responseText.replace(/^\ ?\(/, '').replace(/\)$/, '');
-            console.log(responseText)
             var myJSON = JSON.parse(responseText);
+            if(screen.currentService == "music") {
+                myJSON = handle_music(myJSON);
+            }
             serviceView.apiResponse = myJSON;
             serviceContent.renderResultList()
-            //console.log(myJSON);
         }
     }
     doc.open("GET", url);

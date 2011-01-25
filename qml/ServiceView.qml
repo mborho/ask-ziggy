@@ -42,6 +42,9 @@ Column {
         id:serviceContent
     }
 
+
+
+
     function loadServiceView(command) {
         apiResponse = ''
         serviceInputText = ''
