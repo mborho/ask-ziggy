@@ -6,10 +6,16 @@ Rectangle {
     height: parent.height-50
     z:-1
     property variant apiResponse: ''
-
+    color: screen.gradientColorStart
     Text {
+        id:serviceContentText
         text: getStartText();
+        height:parent.height
+        width:parent.width
         wrapMode:Text.WrapAtWordBoundaryOrAnywhere
+        color: "black"
+        verticalAlignment: Text.AlignTop
+        horizontalAlignment: Text.AlignLeft
     }
 
     function getStartText() {
@@ -19,8 +25,15 @@ Rectangle {
         return ''
     }
 
-    function renderResultList(option_name) {
+    function renderResultText(result_txt) {
+        serviceContentText.text = result_txt
+        serviveContentListView.visible = false;
+        serviceContentText.visible = true;
+    }
 
+    function renderResultList() {
+        serviceContentText.visible = false;
+        serviveContentListView.visible = true;
         serviceContentList.clear()
         for(var x in apiResponse) {
             var row = apiResponse[x]

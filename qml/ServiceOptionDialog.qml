@@ -80,7 +80,7 @@ Rectangle {
                 ]
                 function optionClicked(ident, name) {
                     serviceOptionDialog.hide()
-                    if(serviceOptionDialog.selected_ident == "tlate_to") {
+                    if(serviceOptionDialog.selected_ident == "tlate_from") {
                         screen.currentServiceOption2 = ident
                         serviceView.optionText2 = name
                     } else {

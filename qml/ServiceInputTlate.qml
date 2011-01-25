@@ -23,16 +23,16 @@ Rectangle {
             height: parent.height/2;
             width:parent.width/16*5;
             RectangleButton {
-                id:serviceOption1
+                id:serviceOption2
                 clickAction: "Ziggy.selectInputTlateFrom"
                 width: parent.width
-                buttonText: serviceView.optionText1
+                buttonText: serviceView.optionText2
             }
             RectangleButton {
-                id:serviceOption2
+                id:serviceOption1
                 clickAction: "Ziggy.selectInputTlateTo"
                 width: parent.width
-                buttonText: serviceView.optionText2
+                buttonText: serviceView.optionText1
             }
         }
 

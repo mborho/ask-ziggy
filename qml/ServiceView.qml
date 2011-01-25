@@ -42,9 +42,6 @@ Column {
         id:serviceContent
     }
 
-
-
-
     function loadServiceView(command) {
         apiResponse = ''
         serviceInputText = ''
@@ -53,8 +50,8 @@ Column {
         serviceInputMetacritic.visible = false;
         serviceInputDeli.visible = false;
         if(command == "tlate") {
-            optionText1 = 'From'
-            optionText2 = 'To'
+            optionText1 = 'To'
+            optionText2 = 'From'
             serviceInputTlate.visible = true;
         } else if(command == "deli") {
             serviceInputDeli.visible = true;

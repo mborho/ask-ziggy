@@ -51,6 +51,29 @@ function build_term() {
     return term
 }
 
+function handle_tlate(data) {
+    var content = data['text']+' ('+data['detected_lang']+' => '+data['lang']+')';
+    return content;
+}
+
+function handle_weather(data) {
+    var content = '<img src="http://google.com'+data['current']['icon']+'" alt="" class="weather_icon" />';
+    content += '<div>'+data['info']['city']+'</div>';
+    if(data['current']['condition'])
+        content += '<div>'+data['current']['condition']+'</div>';
+    content += '<div>'+data['current']['temp_c']+'°C/'+data['current']['temp_f']+'°F</div>';
+    content += '<div>'+data['current']['humidity']+'<br/>'+data['current']['wind_condition']+'</div><br/>';
+    var fore = data['forecast'];
+    for(var f in fore) {
+          var fcast = '<div class="weather_fcast">';
+          fcast += '<img src="http://google.com'+fore[f]['icon']+'" alt="" />';
+          fcast += '<span>'+fore[f]['day_of_week']+': '+fore[f]['condition']+
+          ' ('+fore[f]['low']+'°/'+fore[f]['high']+'°)</span>'
+          content += fcast;
+    }
+    return content;
+}
+
 function handle_music(data) {
     var _extract_hits = function(res) {
       if(res['name']) return [res];
@@ -109,11 +132,19 @@ function doApiCall(term) {
         if (doc.readyState == XMLHttpRequest.DONE) {
             var responseText = doc.responseText.replace(/^\ ?\(/, '').replace(/\)$/, '');
             var myJSON = JSON.parse(responseText);
-            if(screen.currentService == "music") {
-                myJSON = handle_music(myJSON);
-            }
-            serviceView.apiResponse = myJSON;
-            serviceContent.renderResultList()
+            if(screen.currentService == "tlate") {
+                var text =  handle_tlate(myJSON);
+                serviceContent.renderResultText(text)
+            } else if(screen.currentService == "weather") {
+                var text =  handle_weather(myJSON);
+                serviceContent.renderResultText(text)
+            } else {
+                if(screen.currentService == "music") {
+                    myJSON = handle_music(myJSON);
+                }
+                serviceView.apiResponse = myJSON;
+                serviceContent.renderResultList();
+           }
         }
     }
     doc.open("GET", url);
