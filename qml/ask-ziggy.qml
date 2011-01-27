@@ -54,14 +54,14 @@ Item {
             NumberAnimation {
                     target: currentView;
                     property: "opacity";
-                    easing.type: Easing.OutSine
+                    easing.type: Easing.InOutSine
                     to: 0
                     duration: 300
             }
             NumberAnimation {
                 target: targetView;
                 property: "opacity";
-                easing.type: Easing.InSine
+                easing.type: Easing.InOutSine
                 to: 1
                 duration: 300
             }
