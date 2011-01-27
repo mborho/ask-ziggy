@@ -5,6 +5,7 @@ Rectangle {
     parent: screen
     width: screen.width
     height: screen.height
+    color: "lightgrey"
     opacity:0
     property string optionText1: "option 1"
     property string optionText2: "option 2"

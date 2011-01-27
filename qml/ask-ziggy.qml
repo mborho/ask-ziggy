@@ -50,19 +50,20 @@ Item {
     }
     property variant switchAnimation :
         ParallelAnimation {
+//            SequentialAnimation {
             NumberAnimation {
                     target: currentView;
                     property: "opacity";
-                    easing.type: Easing.InOutSine
+                    easing.type: Easing.OutSine
                     to: 0
-                    duration: 400
+                    duration: 300
             }
             NumberAnimation {
                 target: targetView;
                 property: "opacity";
-                easing.type: Easing.InOutSine;
+                easing.type: Easing.InSine
                 to: 1
-                duration: 400
+                duration: 300
             }
-        }
+    }
 }
