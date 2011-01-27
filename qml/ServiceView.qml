@@ -1,11 +1,11 @@
 import Qt 4.7
 
-Column {
+Rectangle {
     id: serviceView
     parent: screen
     width: screen.width
     height: screen.height
-    visible: false
+    opacity:0
     property string optionText1: "option 1"
     property string optionText2: "option 2"
     property alias serviceInputText: serviceInput.inputText
@@ -14,34 +14,40 @@ Column {
     property alias serviceDeliText: serviceInputDeli.inputText
     property alias apiResponse: serviceContent.apiResponse
 
-    ServiceToolbar {
-        id:serviceToolbar
-    }
+    Column {
+        id: serviceViewColumn
+        width: parent.width
+        height: parent.height
 
-    ServiceInput {
-        id:serviceInput
-        visible:false;
-    }
+        ServiceToolbar {
+            id:serviceToolbar
+        }
 
-    ServiceInputTlate {
-        id:serviceInputTlate
-        visible:false;
-    }
+        ServiceInput {
+            id:serviceInput
+            visible:false;
+        }
 
-    ServiceInputMetacritic {
-        id:serviceInputMetacritic
-        visible:false;
-    }
+        ServiceInputTlate {
+            id:serviceInputTlate
+            visible:false;
+        }
 
-    ServiceInputDeli {
-        id:serviceInputDeli
-        visible:false;
-    }
+        ServiceInputMetacritic {
+            id:serviceInputMetacritic
+            visible:false;
+        }
 
-    ServiceContent {
-        id:serviceContent
-    }
+        ServiceInputDeli {
+            id:serviceInputDeli
+            visible:false;
+        }
 
+        ServiceContent {
+            id:serviceContent
+        }
+
+    }
     function loadServiceView(command) {
         apiResponse = ''
         serviceInputText = ''
@@ -61,7 +67,5 @@ Column {
             optionText1 = 'Language'
             serviceInput.visible = true;
         }
-        serviceView.visible = true;
     }
-
 }

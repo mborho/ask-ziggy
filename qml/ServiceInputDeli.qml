@@ -2,7 +2,7 @@ import Qt 4.7
 
 Rectangle {
     id: serviceInputDeli
-    parent: serviceView
+    parent: serviceViewColumn
     width: parent.width
     height: 70
     property bool deliPopState: false

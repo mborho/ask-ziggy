@@ -9,20 +9,27 @@ Item {
     property string currentService: ""
     property string currentServiceOption1: ""
     property string currentServiceOption2: ""
+    property Item currentView
+    property Item targetView
+//    property bool root
+    property bool direction
 
     function showServiceView(command) {
         console.log(command);
         screen.currentService = command;
-        startView.visible =  false;
+        currentView = startView
+        targetView = serviceView
         serviceView.loadServiceView(command)
+        switchAnimation.start()
     }
 
     function showServicesList() {
-        startView.visible =  true
-        serviceView.visible = false
+        currentView = serviceView
+        targetView = startView
         screen.currentService = ""
         screen.currentServiceOption1 = ""
         screen.currentServiceOption2 = ""
+        switchAnimation.start()
     }
 
     function dummy() {
@@ -35,17 +42,27 @@ Item {
 
     ServiceView {
         id:serviceView
-    }  
+    }
 
     ServiceOptionDialog {
             id: serviceOptionDialog
             z: 100
     }
-
-    transitions: Transition {
-        ColorAnimation {duration: 1000 }
-    }
-
+    property variant switchAnimation :
+        ParallelAnimation {
+            NumberAnimation {
+                    target: currentView;
+                    property: "opacity";
+                    easing.type: Easing.InOutSine
+                    to: 0
+                    duration: 400
+            }
+            NumberAnimation {
+                target: targetView;
+                property: "opacity";
+                easing.type: Easing.InOutSine;
+                to: 1
+                duration: 400
+            }
+        }
 }
-
-

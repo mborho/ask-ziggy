@@ -2,8 +2,9 @@ import Qt 4.7
 
 Rectangle {
     id: serviceToolbar
-    parent: serviceView
+    parent: serviceViewColumn
     width: parent.width
+    visible:true
     height: 45
 
     Row {
