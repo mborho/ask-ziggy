@@ -11,7 +11,6 @@ Item {
     property string currentServiceOption2: ""
     property Item currentView
     property Item targetView
-    property bool direction
 
     function showServiceView(command) {
         console.log(command);
