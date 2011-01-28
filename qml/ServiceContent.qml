@@ -2,18 +2,19 @@ import Qt 4.7
 
 Rectangle {
     id: serviceContent
+    parent: serviceViewColumn
     width: parent.width
-    height: parent.height-50
+    height: parent.height-serviceInput.height-serviceToolbar.height
     z:-1
     property variant apiResponse: ''
-    color: screen.gradientColorStart
+    color:screen.gradientColorStart
+
     Text {
         id:serviceContentText
         text: getStartText();
         height:parent.height
         width:parent.width
         wrapMode:Text.WrapAtWordBoundaryOrAnywhere
-        color: "black"
         verticalAlignment: Text.AlignTop
         horizontalAlignment: Text.AlignLeft
     }
@@ -27,17 +28,17 @@ Rectangle {
 
     function renderResultText(result_txt) {
         serviceContentText.text = result_txt
-        serviveContentListView.visible = false;
+        serviceContentList.visible = false;
         serviceContentText.visible = true;
     }
 
     function renderResultList() {
         serviceContentText.visible = false;
-        serviveContentListView.visible = true;
-        serviceContentList.clear()
+        serviceContentList.visible = true;
+        serviceContentListModel.clear()
         for(var x in apiResponse) {
             var row = apiResponse[x]
-            serviceContentList.append({
+            serviceContentListModel.append({
                 "url": decodeURIComponent(row['url']),
                 "title": row['title'],
                 "content": row['content']
@@ -45,78 +46,89 @@ Rectangle {
         }
     }
 
-    ListModel {
-        id: serviceContentList
+    function clearResultList() {
+        serviceContentListModel.clear()
+    }
+    function clearResultText() {
+        serviceContentText.text = ''
     }
 
-    ListView {
-        id: serviveContentListView
-        anchors.fill: parent
-        model: serviceContentList
-        delegate: serviceContentDelegate
-        focus: true
+    Rectangle {
+        id:serviceContentList
+        anchors.centerIn: parent
         height:parent.height
-    }
+        width:parent.width
+        visible: false
+        color:screen.gradientColorStart
 
-    Component {
-        id: serviceContentDelegate
-        Item {
-            width: parent.width
-            height: childrenRect.height
-            Rectangle {
-                id: column
+        ListModel {
+            id: serviceContentListModel
+        }
 
-                border.color: "black"
-                border.width:3
+        ListView {
+            id: serviveContentListView
+            anchors.fill: parent
+            model: serviceContentListModel
+            delegate: serviceContentDelegate
+            boundsBehavior:Flickable.DragOverBounds
+        }
 
-                radius: 5
+        Component {
+            id: serviceContentDelegate
+            Item {
                 width: parent.width
                 height: childrenRect.height
-                color: screen.gradientColorStart
-                Column {
-                    id: delegatorColumn
-                    x:10
-                    y:10
-                    anchors.rightMargin:10
-                    width:parent.width
-                    Text {
-                        text: '<b>'+title+'</b>'
-                        width:parent.width-15
-                        wrapMode:Text.WordWrap
+                Rectangle {
+                    id: column
+
+                    border.color: "black"
+                    border.width:3
+
+                    radius: 5
+                    width: parent.width
+                    height: childrenRect.height
+                    color: screen.gradientColorStart
+                    Column {
+                        id: delegatorColumn
+                        x:10
+                        y:10
+                        anchors.rightMargin:10
+                        width:parent.width
+                        Text {
+                            text: '<b>'+title+'</b>'
+                            width:parent.width-15
+                            wrapMode:Text.WordWrap
+                        }
+                        Text {
+                            text: '<a href="'+url+'">'+url+'</a>'
+                            width:parent.width-15
+    //                        elide:Text.ElideRight
+                            wrapMode:Text.WrapAnywhere
+    //                        onLinkActivated: console.log(link + " link activated")
+                        }
+                        Text {
+                            text:content
+    //                        style: Text.Normal
+                            wrapMode:Text.WordWrap
+                            width:parent.width-15
+                        }
                     }
-                    Text {
-                        text: '<a href="'+url+'">'+url+'</a>'
-                        width:parent.width-15
-//                        elide:Text.ElideRight
-                        wrapMode:Text.WrapAnywhere
-//                        onLinkActivated: console.log(link + " link activated")
+                    MouseArea {
+                        id: mouseArea
+                        anchors.fill: parent
+                        onReleased: parent.entryClicked(url)
                     }
-                    Text {
-                        text:content
-//                        style: Text.Normal
-                        wrapMode:Text.WordWrap
-                        width:parent.width-15
+                    states: [
+                        State {
+                            name: 'clicked'
+                            when: mouseArea.pressed
+                            PropertyChanges { target: column; color:screen.gradientColorEnd}
+    //                        PropertyChanges { target: stop2; position:0 }
+                        }
+                    ]
+                    function entryClicked(url) {
+                        console.log(url)
                     }
-                }
-                MouseArea {
-                    id: mouseArea
-                    anchors.fill: parent
-                    onReleased: parent.entryClicked(url)
-                }
-//                gradient: Gradient {
-//                    GradientStop {id:stop1;position: 0;color: screen.gradientColorStart}
-//                    GradientStop {id:stop2;position: 1;color: screen.gradientColorEnd}
-//                }
-                states: [
-                    State {
-                        name: 'clicked'
-                        when: mouseArea.pressed
-                        PropertyChanges { target: column; color:screen.gradientColorEnd}
-//                        PropertyChanges { target: stop2; position:0 }
-                    }
-                ]
-                function entryClicked(url) {
-                    console.log(url)
                 }
             }
         }

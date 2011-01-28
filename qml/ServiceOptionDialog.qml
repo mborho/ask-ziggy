@@ -40,7 +40,6 @@ Rectangle {
         anchors.fill: parent
         model: serviceOptionModel
         delegate: serviceOptionDelegate
-        focus: true
     }
 
     Component {

@@ -6,7 +6,12 @@ Rectangle {
     width: parent.width
     height: 100
     property alias inputText: textInput.text
-
+    Keys.onPressed: {
+        if(textInput.activeFocus == false) {
+            textInput.focus = true
+            textInput.text = event.text
+        }
+    }
     Row {
         id: serviceInputRow
         height: parent.height;
@@ -17,6 +22,7 @@ Rectangle {
            width:parent.width/8*4
            height: parent.height
            wrapMode:TextEdit.WordWrap
+           cursorVisible:true
         }
 
         Column {

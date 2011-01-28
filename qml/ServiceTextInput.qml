@@ -6,4 +6,6 @@ TextInput {
     y: (parent.height - parent.height/5*2)/2
     width:parent.width/8*4
     height: parent.height
+    cursorVisible:true
+    focus: false
 }

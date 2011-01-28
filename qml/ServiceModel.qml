@@ -34,10 +34,6 @@ ListModel {
         name:'IMDb.com'
     }
     ListElement {
-        command: 'tlate'
-        name:'Translation'
-    }
-    ListElement {
         command: 'wikipedia'
         name:'Wikipedia'
     }

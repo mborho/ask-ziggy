@@ -13,8 +13,7 @@ Rectangle {
         delegate: serviceDelegate
 //            highlight: Rectangle { color: "blue"; radius: 5;  opacity: 0.1; width: parent.width }
 //            highlightFollowsCurrentItem: true
-        focus: true
-
+        boundsBehavior:Flickable.DragOverBounds
     }
 
     Component {

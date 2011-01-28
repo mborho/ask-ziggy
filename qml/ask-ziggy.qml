@@ -11,11 +11,11 @@ Item {
     property string currentServiceOption2: ""
     property Item currentView
     property Item targetView
-//    property bool root
     property bool direction
 
     function showServiceView(command) {
         console.log(command);
+        serviceView.clearResult()
         screen.currentService = command;
         currentView = startView
         targetView = serviceView
@@ -23,7 +23,7 @@ Item {
         switchAnimation.start()
     }
 
-    function showServicesList() {
+    function showServicesList() {        
         currentView = serviceView
         targetView = startView
         screen.currentService = ""

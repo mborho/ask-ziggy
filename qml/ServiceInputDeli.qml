@@ -7,7 +7,12 @@ Rectangle {
     height: 70
     property bool deliPopState: false
     property alias inputText: textInput.text
-
+    Keys.onPressed: {
+        if(textInput.activeFocus == false) {
+            textInput.focus = true
+            textInput.text = event.text
+        }
+    }
     Row {
         id: serviceInputRow
         height: parent.height

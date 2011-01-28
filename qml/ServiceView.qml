@@ -14,15 +14,10 @@ Rectangle {
     property alias serviceMetacriticText: serviceInputMetacritic.inputText
     property alias serviceDeliText: serviceInputDeli.inputText
     property alias apiResponse: serviceContent.apiResponse
-
     Column {
         id: serviceViewColumn
         width: parent.width
         height: parent.height
-
-        ServiceToolbar {
-            id:serviceToolbar
-        }
 
         ServiceInput {
             id:serviceInput
@@ -34,13 +29,13 @@ Rectangle {
             visible:false;
         }
 
-        ServiceInputMetacritic {
-            id:serviceInputMetacritic
+        ServiceInputDeli {
+            id:serviceInputDeli
             visible:false;
         }
 
-        ServiceInputDeli {
-            id:serviceInputDeli
+        ServiceInputMetacritic {
+            id:serviceInputMetacritic
             visible:false;
         }
 
@@ -48,7 +43,11 @@ Rectangle {
             id:serviceContent
         }
 
+        ServiceToolbar {
+            id:serviceToolbar
+        }
     }
+
     function loadServiceView(command) {
         apiResponse = ''
         serviceInputText = ''
@@ -56,17 +55,27 @@ Rectangle {
         serviceInputTlate.visible = false;
         serviceInputMetacritic.visible = false;
         serviceInputDeli.visible = false;
+        serviceContent.height = height-serviceInput.height-serviceToolbar.height
         if(command == "tlate") {
             optionText1 = 'To'
             optionText2 = 'From'
             serviceInputTlate.visible = true;
+            serviceInputTlate.focus = true
+            serviceContent.height = height-serviceInputTlate.height-serviceToolbar.height
         } else if(command == "deli") {
             serviceInputDeli.visible = true;
+            serviceInputDeli.focus = true
         } else if(command=="metacritic"){
             serviceInputMetacritic.visible = true;
+            serviceInputMetacritic.focus = true
         } else {
             optionText1 = 'Language'
             serviceInput.visible = true;
+            serviceInput.focus = true
         }
+    }
+    function clearResult() {
+        serviceContent.clearResultList()
+        serviceContent.clearResultText()
     }
 }
