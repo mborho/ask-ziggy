@@ -12,13 +12,11 @@ Item {
     property Item currentView
     property Item targetView
 
-    function showServiceView(command) {
-        console.log(command);
-        serviceView.clearResult()
+    function showServiceView(command, input) {
         screen.currentService = command;
         currentView = startView
         targetView = serviceView
-        serviceView.loadServiceView(command)
+        Ziggy.loadServiceView(command, input)
         switchAnimation.start()
     }
 

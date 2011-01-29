@@ -2,8 +2,7 @@ import Qt 4.7
 
 Rectangle {
     id: serviceInputMetacritic
-    parent: serviceViewColumn
-    width: parent.width
+    width: serviceView.width
     height: 70
     property alias inputText: textInput.text
     Keys.onPressed: {

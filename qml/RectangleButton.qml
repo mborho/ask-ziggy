@@ -2,7 +2,6 @@ import Qt 4.7
 import "Ziggy.js" as Ziggy
 
 Rectangle {
-//    signal clicked
     width:parent.width/3
     height: parent.height
     property string clickAction

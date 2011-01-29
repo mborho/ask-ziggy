@@ -2,8 +2,7 @@ import Qt 4.7
 
 Rectangle {
     id: serviceToolbar
-    parent: serviceViewColumn
-    width: parent.width
+    width: serviceView.width
     visible:true
     height: 70
 
@@ -12,18 +11,15 @@ Rectangle {
         height: parent.height
         width: parent.width;
 
-
         RectangleButton {
             clickAction: "screen.showServicesList"
             buttonText: "<- Back"
         }
 
-
         RectangleButton {
             clickAction: "Ziggy.showHistory"
             buttonText: "History"
         }
-
 
         RectangleButton {
             clickAction: "Ziggy.showSettings"

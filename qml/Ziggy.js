@@ -1,38 +1,8 @@
-function showHistory() {
-    serviceOptionDialog.show(screen.currentService)
-}
-
-function showSettings() {
-    serviceOptionDialog.show(screen.currentService)
-}
-
-function toolbarFuncCaller(name) {
-    eval(name)()
-}
-
-function selectInputOption() {
-    serviceOptionDialog.show(screen.currentService)
-}
-
-function selectInputTlateFrom() {
-    serviceOptionDialog.show('tlate_from')
-}
-
-function selectInputTlateTo() {
-    serviceOptionDialog.show('tlate_to')
-}
-
+/**
+ BaaS wrapper
+ */
 function getTextInput() {
-    var text = ''
-    if(screen.currentService == "metacritic") {
-        text = serviceView.serviceMetacriticText
-    } else if(screen.currentService == "deli") {
-        text = serviceView.serviceDeliText
-    } else if(screen.currentService == "tlate") {
-        text = serviceView.serviceTlateText
-    } else {
-        text = serviceView.serviceInputText
-    }
+    var text = serviceView.serviceInput.inputText
     return text
 }
 
@@ -124,6 +94,7 @@ function handle_music(data) {
     return list;
 }
 
+
 function doApiCall(term) {
     var doc = new XMLHttpRequest();
     var url = screen.apiUrl+encodeURIComponent(term)
@@ -134,16 +105,16 @@ function doApiCall(term) {
             var myJSON = JSON.parse(responseText);
             if(screen.currentService == "tlate") {
                 var text =  handle_tlate(myJSON);
-                serviceContent.renderResultText(text)
+                serviceView.serviceContent.renderResultText(text)
             } else if(screen.currentService == "weather") {
                 var text =  handle_weather(myJSON);
-                serviceContent.renderResultText(text)
+                serviceView.serviceContent.renderResultText(text)
             } else {
                 if(screen.currentService == "music") {
                     myJSON = handle_music(myJSON);
                 }
-                serviceView.apiResponse = myJSON;
-                serviceContent.renderResultList();
+                serviceView.serviceContent.apiResponse = myJSON;
+                serviceView.serviceContent.renderResultList();
            }
         }
     }
@@ -158,3 +129,65 @@ function askZiggy() {
         doApiCall(term)
     }
 }
+
+var serviceViewColumn;
+var serviceInput;
+var serviceContent;
+var serviceToolbar;
+
+function loadServiceView(command, input) {
+
+    if(serviceInput) {
+        serviceInput.destroy()
+        serviceContent.destroy()
+        serviceToolbar.destroy()
+        serviceViewColumn.destroy()
+    }
+
+    serviceViewColumn = Qt.createQmlObject('import Qt 4.7; Column {id:serviceViewColumn;parent:serviceView; width: parent.width;height: parent.height}', serviceView, 'serviceViewColumn');
+
+    if(command == "tlate") {
+        serviceView.optionText1 = 'To'
+        serviceView.optionText2 = 'From'
+    } else {
+        serviceView.optionText1 = 'Language'
+    }
+
+    var inputComponent = Qt.createComponent(input+'.qml')
+    serviceInput = inputComponent.createObject(serviceViewColumn)
+    serviceView.serviceInput = serviceInput
+
+    var contentComponent = Qt.createComponent("ServiceContent.qml");
+    serviceContent = contentComponent.createObject(serviceViewColumn)
+    serviceView.serviceContent = serviceContent
+
+    var toolbarComponent = Qt.createComponent("ServiceToolbar.qml");
+    serviceToolbar = toolbarComponent.createObject(serviceViewColumn)
+    serviceView.serviceToolbar = serviceContent
+
+    serviceContent.height = serviceView.height-serviceInput.height-serviceToolbar.height
+}
+function showHistory() {
+    serviceOptionDialog.show(screen.currentService)
+}
+
+function showSettings() {
+    serviceOptionDialog.show(screen.currentService)
+}
+
+function toolbarFuncCaller(name) {
+    eval(name)()
+}
+
+function selectInputOption() {
+    serviceOptionDialog.show(screen.currentService)
+}
+
+function selectInputTlateFrom() {
+    serviceOptionDialog.show('tlate_from')
+}
+
+function selectInputTlateTo() {
+    serviceOptionDialog.show('tlate_to')
+}
+

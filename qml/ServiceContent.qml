@@ -2,9 +2,7 @@ import Qt 4.7
 
 Rectangle {
     id: serviceContent
-    parent: serviceViewColumn
-    width: parent.width
-    height: parent.height-serviceInput.height-serviceToolbar.height
+    width: serviceView.width
     z:-1
     property variant apiResponse: ''
     color:screen.gradientColorStart
@@ -44,13 +42,6 @@ Rectangle {
                 "content": row['content']
             })
         }
-    }
-
-    function clearResultList() {
-        serviceContentListModel.clear()
-    }
-    function clearResultText() {
-        serviceContentText.text = ''
     }
 
     Rectangle {

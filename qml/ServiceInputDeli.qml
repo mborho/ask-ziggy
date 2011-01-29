@@ -2,8 +2,7 @@ import Qt 4.7
 
 Rectangle {
     id: serviceInputDeli
-    parent: serviceViewColumn
-    width: parent.width
+    width: serviceView.width
     height: 70
     property bool deliPopState: false
     property alias inputText: textInput.text

@@ -36,7 +36,7 @@ Rectangle {
                 MouseArea {
                     id: mouseArea
                     anchors.fill: parent
-                    onReleased: parent.serviceClicked(parent)
+                    onReleased: parent.serviceClicked(command, input)
                 }
                 gradient: Gradient {
                     GradientStop {id:stop1;position: 0;color: screen.gradientColorStart}
@@ -50,8 +50,8 @@ Rectangle {
                         PropertyChanges { target: stop2; position:0 }
                     }
                 ]
-                function serviceClicked(parent) {
-                    screen.showServiceView(command)
+                function serviceClicked(command, input) {
+                    screen.showServiceView(command, input)
                 }
             }
         }
