@@ -5,12 +5,6 @@ Rectangle {
     width: serviceView.width
     height: 100
     property alias inputText: textInput.text
-    Keys.onPressed: {
-        if(textInput.activeFocus == false) {
-            textInput.focus = true
-            textInput.text = event.text
-        }
-    }
     Row {
         id: serviceInputRow
         height: parent.height;
@@ -22,6 +16,7 @@ Rectangle {
            height: parent.height
            wrapMode:TextEdit.WordWrap
            cursorVisible:true
+           focus:true
         }
 
         Column {

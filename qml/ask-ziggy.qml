@@ -1,8 +1,13 @@
 import Qt 4.7
 import "Ziggy.js" as Ziggy
 
-Item {
+Rectangle {
     id: screen;
+    width: 800
+    height: 424
+//    width: (runtime.orientation == Orientation.Landscape) ? 800 : 424
+//    height: (runtime.orientation == Orientation.Landscape) ? 800 : 424
+
     property string apiUrl: 'http://ask-ziggy.appspot.com/api/query?&term=';
     property string gradientColorStart: "lightgrey"
     property string gradientColorEnd: "grey"
@@ -12,12 +17,27 @@ Item {
     property Item currentView
     property Item targetView
 
+    states: [State {
+        name: "landscape"
+        PropertyChanges { target: screen; width: 424; height: 8000 }
+        }
+//        State {
+//            name: "portrait"
+//            PropertyChanges { target: screen; width: 480; height: 800 }
+//        }
+    ]
+    state: (runtime.orientation == Orientation.Landscape) ? 'landscape' : ''
+
     function showServiceView(command, input) {
         screen.currentService = command;
         currentView = startView
         targetView = serviceView
         Ziggy.loadServiceView(command, input)
         switchAnimation.start()
+        console.log(screen.state)
+        console.log(Orientation.Landscape)
+        console.log(screen.width)
+        console.log(screen.height)
     }
 
     function showServicesList() {        

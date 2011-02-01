@@ -118,6 +118,7 @@ Rectangle {
                         }
                     ]
                     function entryClicked(url) {
+                        Qt.openUrlExternally ( url )
                         console.log(url)
                     }
                 }

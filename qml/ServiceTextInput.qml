@@ -7,5 +7,5 @@ TextInput {
     width:parent.width/8*4
     height: parent.height
     cursorVisible:true
-    focus: false
+    focus: true
 }
