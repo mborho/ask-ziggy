@@ -3,8 +3,8 @@ import "Ziggy.js" as Ziggy
 
 Rectangle {
     id: screen;
-    width: 640
-    height: 360
+    width: 800
+    height: 424
 
     property string apiUrl: 'http://ask-ziggy.appspot.com/api/query?&term=';
     property string gradientColorStart: "lightgrey"
@@ -16,16 +16,17 @@ Rectangle {
     property Item targetView
 
     states: [
-        State {
-            name: "landscape"
-            PropertyChanges { target: screen; width: 640; height: 360 }
-        },
+//        State {
+//            name: "landscape"
+//            PropertyChanges { target: screen; width: 800; height: 424 }
+//        }
+//    ]
         State {
             name: "portrait"
-            PropertyChanges { target: screen; width: 360; height: 640 }
+            PropertyChanges { target: screen; width: 424; height: 800 }
         }
     ]
-    state: (runtime.orientation == Orientation.Landscape) ? 'landscape' : 'portrait'
+    state: (runtime.orientation == Orientation.Portrait || runtime.orientation == Orientation.PortraitInverted) ? 'portrait' : ''
 
     onHeightChanged: {
         Ziggy.heightChanged();

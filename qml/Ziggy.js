@@ -169,22 +169,8 @@ function loadServiceView(command, input) {
 }
 
 function heightChanged() {
-    console.log("")
-    console.log("####")
-    console.log("height changed called")
-    console.log("screen.width: "+screen.width)
-    console.log("screen.height: "+screen.height)
     if(serviceContent) {
-        console.log("height changed active")
-        console.log("screen.width: "+screen.width)
-        console.log("screen.height: "+screen.height)
-        console.log("input height: "+serviceInput.height)
-        console.log("content height: "+serviceContent.height)
-        console.log("toolbar height: "+serviceToolbar.height)
         serviceView.serviceContent.height = screen.height-serviceInput.height-serviceToolbar.height
-        console.log("input height: "+serviceInput.height)
-        console.log("content height: "+serviceContent.height)
-        console.log("toolbar height: "+serviceToolbar.height)
     }
 }
 
