@@ -3,10 +3,8 @@ import "Ziggy.js" as Ziggy
 
 Rectangle {
     id: screen;
-    width: 800
-    height: 424
-//    width: (runtime.orientation == Orientation.Landscape) ? 800 : 424
-//    height: (runtime.orientation == Orientation.Landscape) ? 800 : 424
+    width: 640
+    height: 360
 
     property string apiUrl: 'http://ask-ziggy.appspot.com/api/query?&term=';
     property string gradientColorStart: "lightgrey"
@@ -20,11 +18,11 @@ Rectangle {
     states: [
         State {
             name: "landscape"
-            PropertyChanges { target: screen; width: 424; height: 8000 }
+            PropertyChanges { target: screen; width: 640; height: 360 }
         },
         State {
             name: "portrait"
-            PropertyChanges { target: screen; width: 424; height: 800 }
+            PropertyChanges { target: screen; width: 360; height: 6400 }
         }
     ]
     state: (runtime.orientation == Orientation.Landscape) ? 'landscape' : 'portrait'
@@ -36,7 +34,7 @@ Rectangle {
         Ziggy.loadServiceView(command, input)
         switchAnimation.start()
         console.log(screen.state)
-        console.log(Orientation.Landscape)
+        console.log(rotation.orientation)
         console.log(screen.width)
         console.log(screen.height)
     }
