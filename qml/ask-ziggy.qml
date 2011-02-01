@@ -17,16 +17,17 @@ Rectangle {
     property Item currentView
     property Item targetView
 
-    states: [State {
-        name: "landscape"
-        PropertyChanges { target: screen; width: 424; height: 8000 }
+    states: [
+        State {
+            name: "landscape"
+            PropertyChanges { target: screen; width: 424; height: 8000 }
+        },
+        State {
+            name: "portrait"
+            PropertyChanges { target: screen; width: 424; height: 800 }
         }
-//        State {
-//            name: "portrait"
-//            PropertyChanges { target: screen; width: 480; height: 800 }
-//        }
     ]
-    state: (runtime.orientation == Orientation.Landscape) ? 'landscape' : ''
+    state: (runtime.orientation == Orientation.Landscape) ? 'landscape' : 'portrait'
 
     function showServiceView(command, input) {
         screen.currentService = command;
