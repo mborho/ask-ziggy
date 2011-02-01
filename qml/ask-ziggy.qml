@@ -22,13 +22,13 @@ Rectangle {
         },
         State {
             name: "portrait"
-            PropertyChanges { target: screen; width: 360; height: 6400 }
+            PropertyChanges { target: screen; width: 360; height: 640 }
         }
     ]
     state: (runtime.orientation == Orientation.Landscape) ? 'landscape' : 'portrait'
 
     onHeightChanged: {
-        console.log('log');
+        Ziggy.heightChanged();
     }
 
     function showServiceView(command, input) {
@@ -41,6 +41,7 @@ Rectangle {
         console.log(rotation.orientation)
         console.log(screen.width)
         console.log(screen.height)
+//        Ziggy.heightChanged()
     }
 
     function showServicesList() {        
