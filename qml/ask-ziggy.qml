@@ -27,6 +27,10 @@ Rectangle {
     ]
     state: (runtime.orientation == Orientation.Landscape) ? 'landscape' : 'portrait'
 
+    onHeightChanged: {
+        console.log('log');
+    }
+
     function showServiceView(command, input) {
         screen.currentService = command;
         currentView = startView

@@ -167,6 +167,7 @@ function loadServiceView(command, input) {
 
     serviceContent.height = serviceView.height-serviceInput.height-serviceToolbar.height
 }
+
 function showHistory() {
     serviceOptionDialog.show(screen.currentService)
 }
