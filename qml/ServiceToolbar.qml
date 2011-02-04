@@ -1,10 +1,12 @@
 import Qt 4.7
+import "elements"
 
 Rectangle {
     id: serviceToolbar
     width: serviceView.width
     visible:true
-    height: 70
+    height: 70    
+    parent: serviceView
     anchors.bottom: parent.bottom
 
     Row {

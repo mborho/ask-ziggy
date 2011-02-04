@@ -22,24 +22,15 @@ Rectangle {
         targetView = serviceView
         Ziggy.loadServiceView(command, input)
         switchAnimation.start()
-        console.log(screen.state)
-        console.log(rotation.orientation)
-        console.log(screen.width)
-        console.log(screen.height)
-//        Ziggy.heightChanged()
     }
 
-    function showServicesList() {        
+    function showServicesList() {
         currentView = serviceView
         targetView = startView
         screen.currentService = ""
         screen.currentServiceOption1 = ""
         screen.currentServiceOption2 = ""
         switchAnimation.start()
-    }
-
-    function dummy() {
-        console.log('dummy')
     }
 
     StartView {
@@ -54,6 +45,7 @@ Rectangle {
             id: serviceOptionDialog
             z: 100
     }
+
     property variant switchAnimation :
         ParallelAnimation {
 //            SequentialAnimation {
