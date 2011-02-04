@@ -1,5 +1,5 @@
 import Qt 4.7
-import "Ziggy.js" as Ziggy
+import "js/Ziggy.js" as Ziggy
 
 Rectangle {
     width:parent.width/3
