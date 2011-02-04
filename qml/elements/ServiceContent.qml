@@ -48,6 +48,14 @@ Rectangle {
         }
     }
 
+
+    BorderShadow {}
+
+    BorderShadow {
+        y:parent.height
+        transform: Rotation { origin.x: serviceContentList.width/2; origin.y: 0; angle: 180}
+    }
+
     Rectangle {
         id:serviceContentList
         anchors.centerIn: parent
@@ -75,37 +83,38 @@ Rectangle {
                 height: childrenRect.height
                 Rectangle {
                     id: column
-
-                    border.color: "black"
-                    border.width:3
-
-                    radius: 5
                     width: parent.width
                     height: childrenRect.height
                     color: screen.gradientColorStart
                     Column {
                         id: delegatorColumn
-                        x:10
-                        y:10
-                        anchors.rightMargin:10
+                        height: childrenRect.height
                         width:parent.width
                         Text {
                             text: '<b>'+title+'</b>'
-                            width:parent.width-15
+                            width:parent.width-25
                             wrapMode:Text.WordWrap
+                            x:10
                         }
                         Text {
                             text: '<a href="'+url+'">'+url+'</a>'
                             width:parent.width-15
-    //                        elide:Text.ElideRight
-                            wrapMode:Text.WrapAnywhere
-    //                        onLinkActivated: console.log(link + " link activated")
+                            x:10
+                            elide:Text.ElideLeft
+//                            wrapMode:Text.WrapAnywhere
                         }
                         Text {
                             text:content
-    //                        style: Text.Normal
+                            x:10
                             wrapMode:Text.WordWrap
                             width:parent.width-15
+                            visible: (content) ? true : false
+                        }
+
+                        Rectangle {
+                            height: 2
+                            width:parent.width
+                            color:"black"
                         }
                     }
                     MouseArea {

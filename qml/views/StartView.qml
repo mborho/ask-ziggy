@@ -6,6 +6,7 @@ Rectangle {
     width: parent.width
     height: parent.height
 
+
     ListView {
         id: serviveListView
         anchors.fill: parent
@@ -37,7 +38,7 @@ Rectangle {
                     id: mouseArea
                     anchors.fill: parent
                     onReleased: parent.serviceClicked(command, input)
-                }
+                }                
                 gradient: Gradient {
                     GradientStop {id:stop1;position: 0;color: screen.gradientColorStart}
                     GradientStop {id:stop2;position: 1;color: screen.gradientColorEnd}
