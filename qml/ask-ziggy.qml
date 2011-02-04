@@ -1,5 +1,6 @@
 import Qt 4.7
 import "elements"
+import "views"
 import "js/Ziggy.js" as Ziggy
 
 Rectangle {

@@ -1,8 +1,7 @@
 import Qt 4.7
-import "elements"
 
 Rectangle {
-    id: serviceInputMetacritic
+    id: serviceInput
     width: serviceView.width
     height: 70
     property alias inputText: textInput.text
@@ -14,12 +13,16 @@ Rectangle {
 
         ServiceTextInput {
             id:textInput
-            width:parent.width/4*3
         }
 
-        ServiceInputSubmit {
-            width:parent.width/4
+        RectangleButton {
+            id:serviceOption1
+            clickAction: "Ziggy.selectInputOption"
+            width: parent.width/8*3
+            buttonText: serviceView.optionText1
         }
+
+        ServiceInputSubmit {}
     }
 
 }

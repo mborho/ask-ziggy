@@ -153,16 +153,16 @@ function loadServiceView(command, input) {
         serviceView.optionText1 = 'Language'
     }
 
-    var inputComponent = Qt.createComponent(input+'.qml')
+    var inputComponent = Qt.createComponent('elements/'+input+'.qml')
     serviceInput = inputComponent.createObject(serviceViewColumn)
     serviceView.serviceInput = serviceInput
 
-    var toolbarComponent = Qt.createComponent("ServiceToolbar.qml");
+    var toolbarComponent = Qt.createComponent('elements/ServiceToolbar.qml');
     serviceToolbar = toolbarComponent.createObject(serviceViewColumn)
     serviceView.serviceToolbar = serviceToolbar
 
 
-    var contentComponent = Qt.createComponent("ServiceContent.qml");
+    var contentComponent = Qt.createComponent('elements/ServiceContent.qml');
     serviceContent = contentComponent.createObject(serviceViewColumn)
     serviceView.serviceContent = serviceContent
 

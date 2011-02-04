@@ -1,5 +1,4 @@
 import Qt 4.7
-import "elements"
 
 Rectangle {
     id: serviceToolbar
