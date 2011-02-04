@@ -1,5 +1,5 @@
 import Qt 4.7
-import "options/serviceOptions.js" as Options
+import "js/serviceOptions.js" as Options
 
 Rectangle {
     id: serviceOptionDialog

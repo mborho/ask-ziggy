@@ -3,12 +3,9 @@ import "Ziggy.js" as Ziggy
 
 Rectangle {
     id: screen;
-//    width: 424
-//    height: 800
-    width: (runtime.orientation == Orientation.Portrait || runtime.orientation == Orientation.PortraitInverted) ? 424 : 800
-    height: (runtime.orientation == Orientation.Portrait || runtime.orientation == Orientation.PortraitInverted) ? 800 : 424
+//    width: (runtime.orientation == Orientation.Portrait || runtime.orientation == Orientation.PortraitInverted) ? 424 : 800
+//    height: (runtime.orientation == Orientation.Portrait || runtime.orientation == Orientation.PortraitInverted) ? 800 : 424
     anchors.fill: parent
-//    height: 800
 
     property string apiUrl: 'http://ask-ziggy.appspot.com/api/query?&term=';
     property string gradientColorStart: "lightgrey"
@@ -18,23 +15,6 @@ Rectangle {
     property string currentServiceOption2: ""
     property Item currentView
     property Item targetView
-
-//    states: [
-//        State {
-//            name: "landscape"
-//            PropertyChanges { target: screen; width: 800; height: 424 }
-//        }
-//    ]
-//        State {
-//            name: "portrait"
-//            PropertyChanges { target: screen; width: 424; height: 800 }
-//        }
-//    ]
-//    state: (runtime.orientation == Orientation.Portrait || runtime.orientation == Orientation.PortraitInverted) ? '' : 'landscape'
-
-//    onHeightChanged: {
-//        Ziggy.heightChanged();
-//    }
 
     function showServiceView(command, input) {
         screen.currentService = command;

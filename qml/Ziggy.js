@@ -166,14 +166,7 @@ function loadServiceView(command, input) {
     serviceContent = contentComponent.createObject(serviceViewColumn)
     serviceView.serviceContent = serviceContent
 
-//    serviceContent.height = serviceView.height-serviceInput.height-serviceToolbar.height
 }
-
-//function heightChanged() {
-//    if(serviceContent) {
-//        serviceView.serviceContent.height = screen.height-serviceInput.height-serviceToolbar.height
-//    }
-//}
 
 function showHistory() {
     serviceOptionDialog.show(screen.currentService)
