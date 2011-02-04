@@ -157,22 +157,23 @@ function loadServiceView(command, input) {
     serviceInput = inputComponent.createObject(serviceViewColumn)
     serviceView.serviceInput = serviceInput
 
+    var toolbarComponent = Qt.createComponent("ServiceToolbar.qml");
+    serviceToolbar = toolbarComponent.createObject(serviceViewColumn)
+    serviceView.serviceToolbar = serviceToolbar
+
+
     var contentComponent = Qt.createComponent("ServiceContent.qml");
     serviceContent = contentComponent.createObject(serviceViewColumn)
     serviceView.serviceContent = serviceContent
 
-    var toolbarComponent = Qt.createComponent("ServiceToolbar.qml");
-    serviceToolbar = toolbarComponent.createObject(serviceViewColumn)
-    serviceView.serviceToolbar = serviceContent
-
-    serviceContent.height = serviceView.height-serviceInput.height-serviceToolbar.height
+//    serviceContent.height = serviceView.height-serviceInput.height-serviceToolbar.height
 }
 
-function heightChanged() {
-    if(serviceContent) {
-        serviceView.serviceContent.height = screen.height-serviceInput.height-serviceToolbar.height
-    }
-}
+//function heightChanged() {
+//    if(serviceContent) {
+//        serviceView.serviceContent.height = screen.height-serviceInput.height-serviceToolbar.height
+//    }
+//}
 
 function showHistory() {
     serviceOptionDialog.show(screen.currentService)

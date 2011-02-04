@@ -5,6 +5,7 @@ Rectangle {
     width: serviceView.width
     visible:true
     height: 70
+    anchors.bottom: parent.bottom
 
     Row {
         id: serviceToolbarRow

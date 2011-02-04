@@ -7,6 +7,13 @@ Rectangle {
     property variant apiResponse: ''
     color:screen.gradientColorStart
 
+    height: serviceView.height-serviceView.serviceInput.height-serviceView.serviceToolbar.height
+    anchors.top: serviceView.serviceInput.bottom
+    anchors.topMargin: serviceView.serviceInput.height
+    anchors.bottom: serviceView.serviceToolbar.top
+    anchors.bottomMargin: serviceView.serviceToolbar.height
+    anchors.fill: parent
+
     Text {
         id:serviceContentText
         text: getStartText();
