@@ -8,19 +8,21 @@ Rectangle {
     opacity: 0
     color: screen.gradientColorEnd
     anchors.centerIn: parent
-    border.color: "black"
-    border.width: 10
 
     property string selected_ident: ""
 
     function show(name) {        
         serviceOptionDialog.selected_ident = name
-        serviceOptionDialog.opacity = 1;
+        currentView = serviceView
+        targetView = serviceOptionDialog
         add_option(name);
+        screen.switchAnimation.start()
     }
 
     function hide() {
-        serviceOptionDialog.opacity = 0;
+        targetView = serviceView
+        currentView = serviceOptionDialog
+        screen.switchAnimation.start()
     }
 
     function add_option(option_name) {
@@ -34,11 +36,23 @@ Rectangle {
         }
     }
 
+    RectangleButton {
+        id:optionsDialogCancel
+        width:parent.width
+        height: 50
+        clickAction: "serviceOptionDialog.hide"
+        buttonText: "Cancel"
+        anchors.bottom: parent.bottom
+    }
+
     Rectangle {
+        id:optionsListContainer
         color: screen.gradientColorStart
-        height: parent.height -30
-        width: parent.width -30
-        anchors.centerIn: parent
+        height: parent.height-optionsDialogCancel.height-20
+        width: parent.width-20
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.verticalCenterOffset: -25
         clip:true
 
         BorderShadow {}
@@ -58,8 +72,8 @@ Rectangle {
             anchors.topMargin: 10
             model: serviceOptionModel
             delegate: serviceOptionDelegate
-            height:parent.height
-            boundsBehavior:Flickable.DragOverBounds
+            height:parent.height-50
+            boundsBehavior:Flickable.StopAtBounds
         }
 
         Component {

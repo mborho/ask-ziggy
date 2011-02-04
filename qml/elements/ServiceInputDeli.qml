@@ -25,7 +25,7 @@ Rectangle {
                 id:deliPopIcon
                 anchors.verticalCenter: parent.verticalCenter
                 x: parent.width/8
-                source: "content/icons/ok.png"
+                source: "../content/icons/ok.png"
                 visible:false
             }
         }

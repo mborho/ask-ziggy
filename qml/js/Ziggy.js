@@ -181,7 +181,7 @@ function toolbarFuncCaller(name) {
 }
 
 function selectInputOption() {
-    serviceOptionDialog.show(screen.currentService)
+    serviceOptionDialog.show(screen.currentService)    
 }
 
 function selectInputTlateFrom() {
