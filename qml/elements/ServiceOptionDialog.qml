@@ -80,7 +80,7 @@ Rectangle {
             id: serviceOptionDelegate
             Item {
                 width: parent.width
-                height: 40
+                height: 60
                 Rectangle {
                     id: column
                     width: parent.width/* - parent.width/8*/
