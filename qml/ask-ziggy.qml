@@ -58,6 +58,14 @@ Rectangle {
                     to: -800
                     duration: 300
             }
+            NumberAnimation {
+                    target: currentView;
+                    property: "opacity";
+                    easing.type: Easing.Linear
+                    from:1
+                    to: 0
+                    duration: 300
+            }
     }
 
     property variant switchIn :
@@ -69,6 +77,14 @@ Rectangle {
                     to: 0
                     duration: 300
             }
+            NumberAnimation {
+                    target: targetView;
+                    property: "opacity";
+                    easing.type: Easing.Linear
+                    from:0
+                    to: 1
+                    duration: 300
+            }
     }
 
     property variant switchUp :
@@ -77,7 +93,16 @@ Rectangle {
                     target: targetView;
                     property: "y";
                     easing.type: Easing.Linear
+                    from: -800
                     to: 0
+                    duration: 300
+            }
+            NumberAnimation {
+                    target: targetView;
+                    property: "opacity";
+                    easing.type: Easing.Linear
+                    from:0
+                    to: 1
                     duration: 300
             }
     }
@@ -88,7 +113,16 @@ Rectangle {
                     target: currentView;
                     property: "y";
                     easing.type: Easing.Linear
+                    from:0
                     to: -800
+                    duration: 300
+            }
+            NumberAnimation {
+                    target: currentView;
+                    property: "opacity";
+                    easing.type: Easing.Linear
+                    from:1
+                    to: 0
                     duration: 300
             }
     }
