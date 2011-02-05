@@ -115,11 +115,18 @@ Rectangle {
             Item {
                 width: parent.width
                 height: childrenRect.height
+
                 Rectangle {
                     id: column
                     width: parent.width
                     height: childrenRect.height
-                    color: screen.gradientColorStart
+//                    color: screen.gradientColorStart
+                    gradient: Gradient {
+                        GradientStop { position: 0.0; color: "#EDEDED" }
+                        GradientStop { position: 0.04; color: "#E0E0E0"}
+                        GradientStop { position: 0.96; color: "#E0E0E0"}
+                        GradientStop { position: 1.0; color: "#EDEDED" }
+                    }
                     Column {
                         id: delegatorColumn
                         height: childrenRect.height
@@ -146,9 +153,9 @@ Rectangle {
                         }
 
                         Rectangle {
-                            height: 2
+                            height: 1
                             width:parent.width
-                            color:"black"
+                            color:screen.gradientColorEnd
                         }
                     }
                     MouseArea {
