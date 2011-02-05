@@ -55,23 +55,28 @@ Rectangle {
         borderShadowBottom.opacity = 0
     }
 
-    property variant showShadows :
-        ParallelAnimation {
-            NumberAnimation {
-                    target: borderShadowTop
-                    property: "opacity";
-                    easing.type: Easing.OutQuad
-                    to: 1
-                    duration: 500
-            }
-            NumberAnimation {
-                target: borderShadowBottom
-                property: "opacity";
-                easing.type: Easing.OutQuad
-                to: 1
-                duration: 500
-            }
-        }
+    function showShadows() {
+        borderShadowTop.opacity = 1
+        borderShadowBottom.opacity = 1
+    }
+
+//    property variant showShadows :
+//        ParallelAnimation {
+//            NumberAnimation {
+//                    target: borderShadowTop
+//                    property: "opacity";
+//                    easing.type: Easing.OutQuad
+//                    to: 1
+//                    duration: 500
+//            }
+//            NumberAnimation {
+//                target: borderShadowBottom
+//                property: "opacity";
+//                easing.type: Easing.OutQuad
+//                to: 1
+//                duration: 500
+//            }
+//        }
 
     BorderShadow {
         id:borderShadowTop
@@ -101,7 +106,7 @@ Rectangle {
             model: serviceContentListModel
             delegate: serviceContentDelegate
             boundsBehavior:Flickable.DragOverBounds
-            onMovementStarted:showShadows.start()
+            onMovementStarted:showShadows()//.start()
         }
 
         Component {
