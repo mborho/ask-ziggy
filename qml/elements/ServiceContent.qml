@@ -41,11 +41,10 @@ Rectangle {
         serviceContentList.visible = true;
         if(screen.currentPage == 1) {
             serviceContentListModel.clear()
+            hideShadows()
         } else {
             serviceContentListModel.remove(serviceContentListModel.count-1)
         }
-
-        hideShadows()
         for(var x in apiResponse) {
             var row = apiResponse[x]
             serviceContentListModel.append({
