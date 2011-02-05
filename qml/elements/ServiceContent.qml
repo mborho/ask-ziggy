@@ -126,10 +126,10 @@ Rectangle {
                     width: parent.width
                     height: childrenRect.height
                     gradient: Gradient {
-                        GradientStop { id:fill1;position: 0.0; color: "#DCDCDC" }
-                        GradientStop { id:fill2; position: 0.15; color: "#D7D7D7"}
-                        GradientStop { id:fill3; position: 0.85; color: "#D7D7D7"}
-                        GradientStop { id:fill4; position: 1.0; color: "#DCDCDC" }
+                        GradientStop { id:fill1;position: 0.0; color: "#E9E9E9" }
+                        GradientStop { id:fill2; position: 0.1; color: "#D7D7D7"}
+                        GradientStop { id:fill3; position: 0.9; color: "#D7D7D7"}
+                        GradientStop { id:fill4; position: 1.0; color: "#E9E9E9" }
                     }
                     Text {
                         id:resultText
@@ -158,8 +158,8 @@ Rectangle {
                             when: mouseArea.pressed
 //                            PropertyChanges { target: fill1; color:"#E0E0E0"}
                             PropertyChanges { target: fill1; color:"#D7D7D7"}
-                            PropertyChanges { target: fill2; color:"#DCDCDC"}
-                            PropertyChanges { target: fill3; color:"#DCDCDC"}
+                            PropertyChanges { target: fill2; color:"#E9E9E9"}
+                            PropertyChanges { target: fill3; color:"#E9E9E9"}
                             PropertyChanges { target: fill4; color:"#D7D7D7"}
                         }
                     ]
