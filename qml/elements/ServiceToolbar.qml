@@ -4,7 +4,7 @@ Rectangle {
     id: serviceToolbar
     width: serviceView.width
     visible:true
-    height: 70    
+    height: screen.toolbarHeight
     parent: serviceView
     anchors.bottom: parent.bottom
 

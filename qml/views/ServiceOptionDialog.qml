@@ -1,4 +1,5 @@
 import Qt 4.7
+import "../elements"
 import "../js/serviceOptions.js" as Options
 
 Rectangle {
@@ -39,7 +40,7 @@ Rectangle {
     RectangleButton {
         id:optionsDialogCancel
         width:parent.width
-        height: 50
+        height: screen.toolbarHeight
         clickAction: "serviceOptionDialog.hide"
         buttonText: "Cancel"
         anchors.bottom: parent.bottom
@@ -59,7 +60,7 @@ Rectangle {
 
         BorderShadow {
             y:parent.height
-            transform: Rotation { origin.x: parent.width/2-15; origin.y: 0; angle: 180}
+            transform: Rotation { origin.x: parent.width/2-10; origin.y: 0; angle: 180}
         }
 
         ListModel {
@@ -72,7 +73,7 @@ Rectangle {
             anchors.topMargin: 10
             model: serviceOptionModel
             delegate: serviceOptionDelegate
-            height:parent.height-50
+            height:parent.height-screen.toolbarHeight
             boundsBehavior:Flickable.StopAtBounds
         }
 
