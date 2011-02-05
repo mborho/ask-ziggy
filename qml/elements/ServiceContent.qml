@@ -125,46 +125,28 @@ Rectangle {
                     id: column
                     width: parent.width
                     height: childrenRect.height
-//                    anchors.top:  serviceContentDelegate.top
-//                    anchors.topMargin: 10
-//                    anchors.bottomMargin: 10
-//                    color: screen.gradientColorStart
                     gradient: Gradient {
-                        GradientStop { position: 0.0; color: "#F7F7F7" }
-                        GradientStop { position: 0.1; color: "#E0E0E0"}
-                        GradientStop { position: 0.9; color: "#E0E0E0"}
-                        GradientStop { position: 1.0; color: "#F7F7F7" }
+                        GradientStop { id:fill1;position: 0.0; color: "#DCDCDC" }
+                        GradientStop { id:fill2; position: 0.15; color: "#D7D7D7"}
+                        GradientStop { id:fill3; position: 0.85; color: "#D7D7D7"}
+                        GradientStop { id:fill4; position: 1.0; color: "#DCDCDC" }
                     }
-//                    Rectangle {
-//                        id: delegatorColumn
-//                        height: childrenRect.height
-//                        width:parent.width
-////                        anchors.bottomMargin:20
-//                        y:10
-                        Text {
-                            id:resultText
-                            anchors.top:  parent.top
-                            anchors.topMargin: 10
-                            text: '<b>'+title+'</b><br/><a href="'+url+'">'+display_link(url,40)+'</a><br/>'+content
-                            width:parent.width-25
-                            wrapMode:Text.WordWrap
-                            x: 10
-                        }
-//                        Text {
-//                            text:'<a href="'+url+'">'+display_link(url,40)+'</a>'+'<br/>'+content
-//                            x:10
-//                            wrapMode:Text.WordWrap
-//                            width:parent.width-15
-//                        }
-
-                        Rectangle {                            
-                            anchors.top:  resultText.bottom
-                            anchors.topMargin: 10
-                            height: 1
-                            width:parent.width
-                            color:screen.gradientColorEnd
-                        }
-//                    }
+                    Text {
+                        id:resultText
+                        anchors.top:  parent.top
+                        anchors.topMargin: 10
+                        text: '<b>'+title+'</b><br/><a href="'+url+'">'+display_link(url,40)+'</a><br/>'+content
+                        width:parent.width-25
+                        wrapMode:Text.WordWrap
+                        x: 10
+                    }
+                    Rectangle {
+                        anchors.top:  resultText.bottom
+                        anchors.topMargin: 10
+                        height: 2
+                        width:parent.width
+                        color:screen.gradientColorStart
+                    }
                     MouseArea {
                         id: mouseArea
                         anchors.fill: parent
@@ -174,8 +156,11 @@ Rectangle {
                         State {
                             name: 'clicked'
                             when: mouseArea.pressed
-                            PropertyChanges { target: column; color:screen.gradientColorEnd}
-    //                        PropertyChanges { target: stop2; position:0 }
+//                            PropertyChanges { target: fill1; color:"#E0E0E0"}
+                            PropertyChanges { target: fill1; color:"#D7D7D7"}
+                            PropertyChanges { target: fill2; color:"#DCDCDC"}
+                            PropertyChanges { target: fill3; color:"#DCDCDC"}
+                            PropertyChanges { target: fill4; color:"#D7D7D7"}
                         }
                     ]
                     function entryClicked(url) {
