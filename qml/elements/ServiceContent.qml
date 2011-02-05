@@ -156,7 +156,6 @@ Rectangle {
                         State {
                             name: 'clicked'
                             when: mouseArea.pressed
-//                            PropertyChanges { target: fill1; color:"#E0E0E0"}
                             PropertyChanges { target: fill1; color:"#D7D7D7"}
                             PropertyChanges { target: fill2; color:"#EBEBEB"}
                             PropertyChanges { target: fill3; color:"#EBEBEB"}

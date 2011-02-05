@@ -24,7 +24,7 @@ Rectangle {
         currentView = startView
         targetView = serviceView
         Ziggy.loadServiceView(command, input)
-        switchAnimation.start()
+        switchOut.start()
     }
 
     function showServicesList() {
@@ -33,7 +33,7 @@ Rectangle {
         screen.currentService = ""
         screen.currentServiceOption1 = ""
         screen.currentServiceOption2 = ""
-        switchAnimation.start()
+        switchIn.start()
     }
 
     StartView {
@@ -46,7 +46,51 @@ Rectangle {
 
     ServiceOptionDialog {
             id: serviceOptionDialog
-            z: 100
+//            z: 10
+    }
+
+    property variant switchOut :
+        ParallelAnimation {
+            NumberAnimation {
+                    target: currentView;
+                    property: "x";
+                    easing.type: Easing.Linear
+                    to: -800
+                    duration: 300
+            }
+    }
+
+    property variant switchIn :
+        ParallelAnimation {
+            NumberAnimation {
+                    target: targetView;
+                    property: "x";
+                    easing.type: Easing.Linear
+                    to: 0
+                    duration: 300
+            }
+    }
+
+    property variant switchUp :
+        ParallelAnimation {
+            NumberAnimation {
+                    target: targetView;
+                    property: "y";
+                    easing.type: Easing.Linear
+                    to: 0
+                    duration: 300
+            }
+    }
+
+    property variant switchDown :
+        ParallelAnimation {
+            NumberAnimation {
+                    target: currentView;
+                    property: "y";
+                    easing.type: Easing.Linear
+                    to: -800
+                    duration: 300
+            }
     }
 
     property variant switchAnimation :

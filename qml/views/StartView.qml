@@ -5,7 +5,7 @@ Rectangle {
     color: "lightgrey";
     width: parent.width
     height: parent.height
-
+    z:3
 
     ListView {
         id: serviveListView

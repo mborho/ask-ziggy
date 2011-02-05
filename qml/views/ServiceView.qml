@@ -7,7 +7,9 @@ Rectangle {
     width: screen.width
     height: screen.height
     color: "lightgrey"
-    opacity:0
+//    opacity:1
+//    z:2
+//    x:800
     property string optionText1: "option 1"
     property string optionText2: "option 2"
     property Item serviceViewColumn

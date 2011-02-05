@@ -6,24 +6,25 @@ Rectangle {
     id: serviceOptionDialog
     height: parent.height
     width: parent.width //dialogText.width + 20
-    opacity: 0
+    opacity: 1
+    y:-800
     color: screen.gradientColorEnd
-    anchors.centerIn: parent
+//    anchors.centerIn: parent
 
     property string selected_ident: ""
 
-    function show(name) {        
+    function show(name) {
         serviceOptionDialog.selected_ident = name
         currentView = serviceView
         targetView = serviceOptionDialog
         add_option(name);
-        screen.switchAnimation.start()
+        screen.switchUp.start()
     }
 
     function hide() {
         targetView = serviceView
         currentView = serviceOptionDialog
-        screen.switchAnimation.start()
+        screen.switchDown.start()
     }
 
     function add_option(option_name) {
