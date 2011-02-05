@@ -30,6 +30,7 @@ Rectangle {
 
     function renderResultText(result_txt) {
         serviceContentText.text = result_txt
+        hideShadows()
         serviceContentList.visible = false;
         serviceContentText.visible = true;
     }
@@ -38,6 +39,7 @@ Rectangle {
         serviceContentText.visible = false;
         serviceContentList.visible = true;
         serviceContentListModel.clear()
+        hideShadows()
         for(var x in apiResponse) {
             var row = apiResponse[x]
             serviceContentListModel.append({
@@ -48,10 +50,35 @@ Rectangle {
         }
     }
 
+    function hideShadows() {
+        borderShadowTop.opacity = 0
+        borderShadowBottom.opacity = 0
+    }
 
-    BorderShadow {}
+    property variant showShadows :
+        ParallelAnimation {
+            NumberAnimation {
+                    target: borderShadowTop
+                    property: "opacity";
+                    easing.type: Easing.OutQuad
+                    to: 1
+                    duration: 500
+            }
+            NumberAnimation {
+                target: borderShadowBottom
+                property: "opacity";
+                easing.type: Easing.OutQuad
+                to: 1
+                duration: 500
+            }
+        }
 
     BorderShadow {
+        id:borderShadowTop
+    }
+
+    BorderShadow {
+        id:borderShadowBottom
         y:parent.height
         transform: Rotation { origin.x: serviceContentList.width/2; origin.y: 0; angle: 180}
     }
@@ -74,6 +101,7 @@ Rectangle {
             model: serviceContentListModel
             delegate: serviceContentDelegate
             boundsBehavior:Flickable.DragOverBounds
+            onMovementStarted:showShadows.start()
         }
 
         Component {
