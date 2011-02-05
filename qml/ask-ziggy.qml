@@ -14,6 +14,8 @@ Rectangle {
     property string gradientColorEnd: "grey"
     property int toolbarHeight: 60
     property string currentService: ""
+    property int currentPage: 1
+    property string lastInput: ""
     property string currentServiceOption1: ""
     property string currentServiceOption2: ""
     property Item currentView
@@ -21,6 +23,8 @@ Rectangle {
 
     function showServiceView(command, input) {
         screen.currentService = command;
+        screen.currentPage = 1;
+        screen.lastInput = '';
         currentView = startView
         targetView = serviceView
         Ziggy.loadServiceView(command, input)

@@ -18,6 +18,12 @@ function build_term() {
     if(screen.currentServiceOption2 != '') {
         term += ' @'+screen.currentServiceOption2
     }
+    if(screen.currentPage > 1 && inputText == screen.lastInput) {
+        term += ' ['+screen.currentPage+']';
+    } else {
+        screen.currentPage = 1
+    }
+    screen.lastInput = inputText
     return term
 }
 

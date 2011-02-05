@@ -1,4 +1,5 @@
 import Qt 4.7
+import "../js/Ziggy.js" as Ziggy
 
 Rectangle {
     id: serviceContent
@@ -38,7 +39,12 @@ Rectangle {
     function renderResultList() {
         serviceContentText.visible = false;
         serviceContentList.visible = true;
-        serviceContentListModel.clear()
+        if(screen.currentPage == 1) {
+            serviceContentListModel.clear()
+        } else {
+            serviceContentListModel.remove(serviceContentListModel.count-1)
+        }
+
         hideShadows()
         for(var x in apiResponse) {
             var row = apiResponse[x]
@@ -46,8 +52,24 @@ Rectangle {
                 "url": decodeURIComponent(row['url']),
                 "title": row['title'],
                 "content": row['content']
+            })            
+        }
+        if(screen.currentPage <= 7  && screen.currentCommand != 'deli' && screen.currentCommand != 'tlate'
+                && screen.currentCommand != 'weather') {
+// TODO and len(entries) == (self.input_page * pluginHnd.limits.get(self.input_command,1)):
+            serviceContentListModel.append({
+                "url": 'more',
+                "title": 'load more...',
+                "content":'<br/>'
             })
         }
+    }
+
+    function buildResultItemText(url, title, content) {
+        var text = '<b>'+title+'</b>';
+        if(url != '' && url != 'more') text += '<br/><a href="'+url+'">'+display_link(url,40)+'</a>';
+        if('content') text += '<br/>'+content
+        return text
     }
 
     function display_link(url, length) {
@@ -135,7 +157,7 @@ Rectangle {
                         id:resultText
                         anchors.top:  parent.top
                         anchors.topMargin: 10
-                        text: '<b>'+title+'</b><br/><a href="'+url+'">'+display_link(url,40)+'</a><br/>'+content
+                        text: buildResultItemText(url, title, content)
                         width:parent.width-25
                         wrapMode:Text.WordWrap
                         x: 10
@@ -163,8 +185,13 @@ Rectangle {
                         }
                     ]
                     function entryClicked(url) {
-                        Qt.openUrlExternally ( url )
-                        console.log(url)
+                        if(url == 'more') {
+                            screen.currentPage += 1;
+                            Ziggy.askZiggy();
+                        } else {
+                            Qt.openUrlExternally ( url )
+                            console.log(url)
+                        }
                     }
                 }
             }
