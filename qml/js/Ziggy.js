@@ -58,7 +58,7 @@ function handle_music(data) {
         var artists = _extract_hits(data['Artist']);
         for(var a in artists) {
             var entry = Object();
-            entry['url'] = decodeURIComponent(artists[a]['url']);
+            entry['url'] = artists[a]['url'];
             entry['title'] = artists[a]['name'];
             entry['content'] = '';
             list[a] = entry;
@@ -67,7 +67,7 @@ function handle_music(data) {
         var releases = _extract_hits(data['Release']);
         for(var r in releases) {
             var entry = Object();
-            entry['url'] = decodeURIComponent(releases[r]['url']);
+            entry['url'] = releases[r]['url'];
             var artist = _get_artist(releases[r])
             entry['title'] = '"'+releases[r]['title']+'" by '+artist['name'];
             entry['content'] = 'Year: '+releases[r]['releaseYear']+'<br/>Label: '+releases[r]['label'];
@@ -78,7 +78,7 @@ function handle_music(data) {
         var tracks = _extract_hits(data['Track']);
         for(var t in tracks) {
             var entry = Object();
-            entry['url'] = decodeURIComponent(tracks[t]['url']);
+            entry['url'] = tracks[t]['url'];
             var artist = _get_artist(tracks[t])
             entry['title'] = '"'+tracks[t]['title']+'" ('+tracks[t]['releaseYear']+') by '+artist['name'];
             var content = ''

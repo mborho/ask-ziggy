@@ -50,6 +50,11 @@ Rectangle {
         }
     }
 
+    function display_link(url, length) {
+        if(url.length > length) return url.substring(0,length)+'...';
+        else return url
+    }
+
     function hideShadows() {
         borderShadowTop.opacity = 0
         borderShadowBottom.opacity = 0
@@ -120,44 +125,46 @@ Rectangle {
                     id: column
                     width: parent.width
                     height: childrenRect.height
+//                    anchors.top:  serviceContentDelegate.top
+//                    anchors.topMargin: 10
+//                    anchors.bottomMargin: 10
 //                    color: screen.gradientColorStart
                     gradient: Gradient {
-                        GradientStop { position: 0.0; color: "#EDEDED" }
-                        GradientStop { position: 0.04; color: "#E0E0E0"}
-                        GradientStop { position: 0.96; color: "#E0E0E0"}
-                        GradientStop { position: 1.0; color: "#EDEDED" }
+                        GradientStop { position: 0.0; color: "#F7F7F7" }
+                        GradientStop { position: 0.1; color: "#E0E0E0"}
+                        GradientStop { position: 0.9; color: "#E0E0E0"}
+                        GradientStop { position: 1.0; color: "#F7F7F7" }
                     }
-                    Column {
-                        id: delegatorColumn
-                        height: childrenRect.height
-                        width:parent.width
+//                    Rectangle {
+//                        id: delegatorColumn
+//                        height: childrenRect.height
+//                        width:parent.width
+////                        anchors.bottomMargin:20
+//                        y:10
                         Text {
-                            text: '<b>'+title+'</b>'
+                            id:resultText
+                            anchors.top:  parent.top
+                            anchors.topMargin: 10
+                            text: '<b>'+title+'</b><br/><a href="'+url+'">'+display_link(url,40)+'</a><br/>'+content
                             width:parent.width-25
                             wrapMode:Text.WordWrap
-                            x:10
+                            x: 10
                         }
-                        Text {
-                            text: '<a href="'+url+'">'+url+'</a>'
-                            width:parent.width-15
-                            x:10
-                            elide:Text.ElideLeft
-//                            wrapMode:Text.WrapAnywhere
-                        }
-                        Text {
-                            text:content
-                            x:10
-                            wrapMode:Text.WordWrap
-                            width:parent.width-15
-                            visible: (content) ? true : false
-                        }
+//                        Text {
+//                            text:'<a href="'+url+'">'+display_link(url,40)+'</a>'+'<br/>'+content
+//                            x:10
+//                            wrapMode:Text.WordWrap
+//                            width:parent.width-15
+//                        }
 
-                        Rectangle {
+                        Rectangle {                            
+                            anchors.top:  resultText.bottom
+                            anchors.topMargin: 10
                             height: 1
                             width:parent.width
                             color:screen.gradientColorEnd
                         }
-                    }
+//                    }
                     MouseArea {
                         id: mouseArea
                         anchors.fill: parent
