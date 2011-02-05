@@ -128,6 +128,11 @@ function doApiCall(term) {
     doc.send();
 }
 
+function submitClicked() {
+    screen.currentPage = 1
+    askZiggy();
+}
+
 function askZiggy() {
     var term = build_term()
     if(term != '') {

@@ -1,7 +1,7 @@
 import Qt 4.7
 
 RectangleButton {
-    clickAction: "Ziggy.askZiggy"
+    clickAction: "Ziggy.submitClicked"
     width: parent.width/8
     buttonText: "go"
 }
