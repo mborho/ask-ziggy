@@ -1,3 +1,5 @@
+Qt.include("Appstate.js")
+
 /**
  BaaS wrapper
  */
@@ -9,9 +11,8 @@ function getTextInput() {
 function build_term() {
     var inputText = getTextInput()
     if(inputText == '') return ''
-    var term = ''
-    term += screen.currentService+':'
-    term += inputText
+    var term = ''    
+    term = inputText
     if(screen.currentServiceOption1 != '') {
         term += ' #'+screen.currentServiceOption1
     }
@@ -24,7 +25,8 @@ function build_term() {
         screen.currentPage = 1
     }
     screen.lastInput = inputText
-    return term
+    screen.currentTerm = term
+    return screen.currentService+':'+term
 }
 
 function handle_tlate(data) {
@@ -79,7 +81,6 @@ function handle_music(data) {
             entry['content'] = 'Year: '+releases[r]['releaseYear']+'<br/>Label: '+releases[r]['label'];
             list[r] = entry;
         }
-        console.log(list);
     } else if (data['Track']) {
         var tracks = _extract_hits(data['Track']);
         for(var t in tracks) {
@@ -107,6 +108,9 @@ function doApiCall(term) {
     console.log(url)
     doc.onreadystatechange = function() {
         if (doc.readyState == XMLHttpRequest.DONE) {
+            if(screen.currentPage == 1) {
+                insertHistoryEntry(screen.currentService, screen.currentTerm)
+            }
             var responseText = doc.responseText.replace(/^\ ?\(/, '').replace(/\)$/, '');
             var myJSON = JSON.parse(responseText);
             if(screen.currentService == "tlate") {
@@ -180,7 +184,7 @@ function loadServiceView(command, input) {
 }
 
 function showHistory() {
-    serviceOptionDialog.show(screen.currentService)
+    serviceOptionDialog.showHistory(screen.currentService,screen.currentHistoryLimit);
 }
 
 function showSettings() {

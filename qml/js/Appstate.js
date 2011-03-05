@@ -2,74 +2,85 @@
 var appstate = Object();
 var db = false;
 
-function get_now() {
+function getNow() {
     var date = new Date();
     return date.getTime();
 }
 
-function get_date_string(timestamp) {
+function getDateString(timestamp) {
     var date = new Date();
     date.setTime(timestamp);
     return date.toLocaleDateString()+' '+date.toLocaleTimeString();
 }
 
-function clean_storage() {
-    if(db) {
-        db.transaction(function(tx) {
-            tx.executeSql("Drop TABLE history");
-        });
-    }
+function getConnection() {
+    console.log('connect to storage')
+    return openDatabaseSync("SubstanceOfCodeTwimGo", "1.0", "KeyValueStorage", 10);
 }
 
-function clean_table(table) {
-    if(db) {
-        db.transaction(function(tx) {
-            tx.executeSql("DELETE FROM "+table+" WHERE 1");
-        });
-    }
+function executeSql(sql, params) {
+    db = getConnection()
+    var res = false;
+    if(!params) params = [];
+    db.transaction(function(tx) {
+        res = tx.executeSql(sql,params);
+    });
+    return res;
 }
 
-function insert_history_entry(service, term) {
-    if(db) {
-        db.transaction(function(tx) {
-            tx.executeSql('INSERT INTO history VALUES(?, ?, ?)', [service, term, get_now() ]);
-        })
-    }
+function cleanStorage() {
+    executeSql("Drop TABLE history");
 }
 
-function get_table_entries(table) {
-    if(db) {
-        db.transaction(function(tx){
-             // Show all added greetings
-             var rs = tx.executeSql('SELECT * FROM '+table);
-
-             var r = ""
-             for(var i = 0; i < rs.rows.length; i++) {
-                 r += rs.rows.item(i).service + ", " + rs.rows.item(i).cmd + ", " + get_date_string(rs.rows.item(i).tstamp) + "\n"
-             }
-             var text = r
-             console.log(text)
-            }
-        );
-    }
+function cleanTable(table) {
+    executeSql("DELETE FROM "+table+" WHERE 1");
 }
 
-function init_storage() {
+function insertHistoryEntry(service, term) {
+    console.log('Saving history entry ['+service+']['+term+']')
+    executeSql('INSERT OR REPLACE INTO history VALUES(?, ?, ?)', [service, term, getNow() ]);
+}
+
+function getHistoryEntries(service, limit) {
+    db = getConnection()
+    var rows = Array();
+    var sql = 'SELECT * FROM history WHERE'
+    if(service != '') {
+        sql += ' service = "'+service+'" ORDER BY tstamp DESC';
+    } else {
+        sql += ' 1 ';
+    }
+    if(limit) {
+        sql += ' LIMIT '+limit
+    }
+    console.log(sql);
+    var rs = executeSql(sql);
+    for(var i = 0; i < rs.rows.length; i++) {
+        rows.push(rs.rows.item(i))
+    }
+    return rows;
+}
+
+function getTableEntries(table) {
+    var rs = executeSql('SELECT * FROM '+table,'');
+    var r = ""
+    for(var i = 0; i < rs.rows.length; i++) {
+        r += rs.rows.item(i).service + ", " + rs.rows.item(i).cmd + ", " + getDateString(rs.rows.item(i).tstamp) + "\n"
+    }
+    var text = r
+    console.log(text)
+}
+
+function initStorage() {
     console.log('initialise storage');
-    db = openDatabaseSync("AskZiggyQmlDB1", "1.0", "The Example QML SQL!", 1000000);
-    db.transaction(
-        function(tx) {
-            // Create the database if it doesn't already exist
-            tx.executeSql('CREATE TABLE IF NOT EXISTS history(service TEXT, cmd TEXT, tstamp INTEGER)');
-        }
-    )
-}
-
+    db = getConnection()
 //    clean_storage();
 //    clean_table('history');
-//    insert_history_entry('gnews','nokia #de');
-//    get_table_entries('history');
+    executeSql('CREATE TABLE IF NOT EXISTS history(service TEXT, cmd TEXT, tstamp INTEGER)');
+    executeSql('CREATE UNIQUE INDEX IF NOT EXISTS history_key ON history (service, cmd)');
+//    getTableEntries('history')
+}
 
 function init() {
-    init_storage();
+    initStorage();
 }

@@ -1,6 +1,7 @@
 import Qt 4.7
 import "../elements"
 import "../js/serviceOptions.js" as Options
+import "../js/Appstate.js" as Appstate
 
 Rectangle {
     id: serviceOptionDialog
@@ -21,6 +22,22 @@ Rectangle {
         screen.switchUp.start()
     }
 
+    function showHistory(service, limit) {
+        currentView = serviceView
+        targetView = serviceOptionDialog
+        serviceOptionModel.clear()
+        var entries = Appstate.getHistoryEntries(service, limit);
+        console.log(entries);
+        for(var opt in entries) {
+            serviceOptionModel.append({
+                "ident": entries[opt].service+':'+entries[opt].cmd,
+                "name": entries[opt].service+':'+entries[opt].cmd,
+                "type": 'history'
+            })
+        }
+        screen.switchUp.start()
+    }
+
     function hide() {
         targetView = serviceView
         currentView = serviceOptionDialog
@@ -34,6 +51,7 @@ Rectangle {
             serviceOptionModel.append({
                 "ident": opt,
                 "name": sOptions[opt],
+                "type": "option"
             })
         }
     }
@@ -99,7 +117,7 @@ Rectangle {
                     MouseArea {
                         id: mouseArea
                         anchors.fill: parent
-                        onReleased: parent.optionClicked(ident, name)
+                        onReleased: parent.optionClicked(ident, name, type)
                     }
                     gradient: Gradient {
                         GradientStop {id:stop1;position: 0;color: screen.gradientColorStart}
@@ -113,14 +131,18 @@ Rectangle {
                             PropertyChanges { target: stop2; position:0 }
                         }
                     ]
-                    function optionClicked(ident, name) {
+                    function optionClicked(ident, name, type) {
                         serviceOptionDialog.hide()
-                        if(serviceOptionDialog.selected_ident == "tlate_from") {
-                            screen.currentServiceOption2 = ident
-                            serviceView.optionText2 = name
+                        if(type == 'history') {
+                            console.log('History entry selected: '+ident)
                         } else {
-                            screen.currentServiceOption1 = ident
-                            serviceView.optionText1 = name
+                            if(serviceOptionDialog.selected_ident == "tlate_from") {
+                                screen.currentServiceOption2 = ident
+                                serviceView.optionText2 = name
+                            } else {
+                                screen.currentServiceOption1 = ident
+                                serviceView.optionText1 = name
+                            }
                         }
                     }
                 }
