@@ -14,7 +14,6 @@ function getDateString(timestamp) {
 }
 
 function getConnection() {
-    console.log('connect to storage')
     return openDatabaseSync("SubstanceOfCodeTwimGo", "1.0", "KeyValueStorage", 10);
 }
 
@@ -43,17 +42,15 @@ function insertHistoryEntry(service, term) {
 
 function getHistoryEntries(service, limit) {
     db = getConnection()
-    var rows = Array();
     var sql = 'SELECT * FROM history WHERE'
     if(service != '') {
         sql += ' service = "'+service+'" ORDER BY tstamp DESC';
     } else {
         sql += ' 1 ';
     }
-    if(limit) {
-        sql += ' LIMIT '+limit
-    }
-    console.log(sql);
+    if(limit) sql += ' LIMIT '+limit
+
+    var rows = Array();
     var rs = executeSql(sql);
     for(var i = 0; i < rs.rows.length; i++) {
         rows.push(rs.rows.item(i))

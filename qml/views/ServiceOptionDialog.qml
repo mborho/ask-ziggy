@@ -2,6 +2,7 @@ import Qt 4.7
 import "../elements"
 import "../js/serviceOptions.js" as Options
 import "../js/Appstate.js" as Appstate
+import "../js/Ziggy.js" as Ziggy
 
 Rectangle {
     id: serviceOptionDialog
@@ -27,11 +28,17 @@ Rectangle {
         targetView = serviceOptionDialog
         serviceOptionModel.clear()
         var entries = Appstate.getHistoryEntries(service, limit);
-        console.log(entries);
         for(var opt in entries) {
+            var parts = Ziggy.parseTerm(entries[opt].cmd);
+            console.log()
+            var name = parts[0]
+            if(parts[1] != '') {
+                var lang_name = Options.ServiceOptions.get(service, -1, parts[1]);
+                if(lang_name != undefined) name += ' / '+ lang_name;
+            }
             serviceOptionModel.append({
                 "ident": entries[opt].service+':'+entries[opt].cmd,
-                "name": entries[opt].service+':'+entries[opt].cmd,
+                "name": name,
                 "type": 'history'
             })
         }

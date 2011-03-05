@@ -29,6 +29,18 @@ function build_term() {
     return screen.currentService+':'+term
 }
 
+function parseTerm(term) {
+    var lang = ''
+    var string = ''
+    if(term != '' && term.indexOf('#') != -1) {
+        string = term.slice(0, term.indexOf('#'));
+        lang = term.slice(term.indexOf('#')+1);
+    } else {
+        string = term;
+    }
+    return new Array(string.trim(), lang.trim())
+}
+
 function handle_tlate(data) {
     var content = data['text']+' ('+data['detected_lang']+' => '+data['lang']+')';
     return content;

@@ -81,7 +81,7 @@ var ServiceOptions = function() {
             } else if (short != '') {
                 for(var shorty in lang_list) {
                     if (short == shorty) {
-                        return {shorty:lang_list[short]}
+                        return lang_list[short]
                     }
                 }
             } else {
