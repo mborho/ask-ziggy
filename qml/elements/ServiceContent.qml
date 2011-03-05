@@ -140,7 +140,8 @@ Rectangle {
             model: serviceContentListModel
             delegate: serviceContentDelegate
             boundsBehavior:Flickable.DragOverBounds
-            onMovementStarted:showShadows()            
+            onMovementStarted:showShadows()
+            flickDeceleration:10
         }
 
         Component {
