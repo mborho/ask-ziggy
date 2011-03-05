@@ -21,6 +21,11 @@ Rectangle {
         RectangleButton {
             clickAction: "Ziggy.showHistory"
             buttonText: "History"
+            visible: (screen.currentService != 'tlate') ? 1 : 0;
+        }
+
+        DummyButton {
+            visible: (screen.currentService != 'tlate') ? 0 : 1;
         }
 
         RectangleButton {
