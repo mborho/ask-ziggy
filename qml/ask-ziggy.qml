@@ -2,11 +2,12 @@ import Qt 4.7
 import "elements"
 import "views"
 import "js/Ziggy.js" as Ziggy
+import "js/Appstate.js" as Appstate
 
 Rectangle {
     id: screen;
-    height: (runtime.orientation == Orientation.Portrait || runtime.orientation == Orientation.PortraitInverted) ? 800 : 424
-    width: (runtime.orientation == Orientation.Portrait || runtime.orientation == Orientation.PortraitInverted) ? 424 : 800
+//    height: (runtime.orientation == Orientation.Portrait || runtime.orientation == Orientation.PortraitInverted) ? 800 : 424
+//    width: (runtime.orientation == Orientation.Portrait || runtime.orientation == Orientation.PortraitInverted) ? 424 : 800
     anchors.fill: parent
 
     property string apiUrl: 'http://ask-ziggy.appspot.com/api/query?&term=';
@@ -20,6 +21,7 @@ Rectangle {
     property string currentServiceOption2: ""
     property Item currentView
     property Item targetView
+    Component.onCompleted: Appstate.init()
 
     function showServiceView(command, input) {
         screen.currentService = command;
