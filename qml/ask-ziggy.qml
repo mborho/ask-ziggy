@@ -12,7 +12,7 @@ Rectangle {
     property string apiUrl: 'http://ask-ziggy.appspot.com/api/query?&term=';
     property string gradientColorStart: "lightgrey"
     property string gradientColorEnd: "grey"
-    property int defaultFlickDeceleration: 2000
+    property int defaultFlickDeceleration: 3000
     property int toolbarHeight: 60
     property string currentService: ""
     property string currentTerm: ""
