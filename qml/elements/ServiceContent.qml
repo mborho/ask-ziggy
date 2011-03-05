@@ -51,7 +51,7 @@ Rectangle {
                 "url": decodeURIComponent(row['url']),
                 "title": row['title'],
                 "content": row['content']
-            })            
+            })
         }
         if(screen.currentPage <= 7  && screen.currentCommand != 'deli' && screen.currentCommand != 'tlate'
                 && screen.currentCommand != 'weather') {
@@ -130,10 +130,12 @@ Rectangle {
         ListView {
             id: serviveContentListView
             anchors.fill: parent
+            anchors.topMargin:4
+            spacing:5
             model: serviceContentListModel
             delegate: serviceContentDelegate
             boundsBehavior:Flickable.DragOverBounds
-            onMovementStarted:showShadows()
+            onMovementStarted:showShadows()            
         }
 
         Component {
@@ -146,11 +148,12 @@ Rectangle {
                     id: column
                     width: parent.width
                     height: childrenRect.height
+                    radius:10
                     gradient: Gradient {
-                        GradientStop { id:fill1;position: 0.0; color: "#EBEBEB" }
-                        GradientStop { id:fill2; position: 0.1; color: "#D7D7D7"}
-                        GradientStop { id:fill3; position: 0.9; color: "#D7D7D7"}
-                        GradientStop { id:fill4; position: 1.0; color: "#EBEBEB" }
+                        GradientStop { id:fill1;position: 0.0; color:"#f7f7f7"}
+                        GradientStop { id:fill2; position: 0.07; color: screen.gradientColorStart}
+                        GradientStop { id:fill3; position: 0.93; color: screen.gradientColorStart}
+                        GradientStop { id:fill4; position: 1.0; color: "darkgrey"}
                     }
                     Text {
                         id:resultText
@@ -166,6 +169,7 @@ Rectangle {
                         anchors.topMargin: 10
                         height: 2
                         width:parent.width
+                        visible:true
                         color:screen.gradientColorStart
                     }
                     MouseArea {
@@ -177,10 +181,10 @@ Rectangle {
                         State {
                             name: 'clicked'
                             when: mouseArea.pressed
-                            PropertyChanges { target: fill1; color:"#D7D7D7"}
-                            PropertyChanges { target: fill2; color:"#EBEBEB"}
-                            PropertyChanges { target: fill3; color:"#EBEBEB"}
-                            PropertyChanges { target: fill4; color:"#D7D7D7"}
+                            PropertyChanges { target: fill1; color:screen.gradientColorEnd}
+                            PropertyChanges { target: fill2; color:"#D7D7D7"}
+                            PropertyChanges { target: fill3; color:"#D7D7D7"}
+                            PropertyChanges { target: fill4; color:"#f7f7f7"}
                         }
                     ]
                     function entryClicked(url) {
