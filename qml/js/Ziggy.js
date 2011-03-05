@@ -5,7 +5,7 @@ Qt.include("Appstate.js")
  */
 function getTextInput() {
     var text = serviceView.serviceInput.inputText
-    return text
+    return text.trim()
 }
 
 function build_term() {

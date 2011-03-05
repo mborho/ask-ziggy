@@ -12,9 +12,8 @@ Rectangle {
         anchors.fill: parent
         model: ServiceModel {}
         delegate: serviceDelegate
-//            highlight: Rectangle { color: "blue"; radius: 5;  opacity: 0.1; width: parent.width }
-//            highlightFollowsCurrentItem: true
         boundsBehavior:Flickable.DragOverBounds
+        flickDeceleration:screen.defaultFlickDeceleration
     }
 
     Component {

@@ -100,6 +100,7 @@ Rectangle {
             delegate: serviceOptionDelegate
             height:parent.height-screen.toolbarHeight
             boundsBehavior:Flickable.StopAtBounds
+            flickDeceleration:screen.defaultFlickDeceleration
         }
 
         Component {

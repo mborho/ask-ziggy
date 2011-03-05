@@ -141,7 +141,7 @@ Rectangle {
             delegate: serviceContentDelegate
             boundsBehavior:Flickable.DragOverBounds
             onMovementStarted:showShadows()
-            flickDeceleration:10
+            flickDeceleration:screen.defaultFlickDeceleration
         }
 
         Component {
