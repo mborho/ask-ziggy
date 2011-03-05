@@ -36,7 +36,6 @@ function cleanTable(table) {
 }
 
 function insertHistoryEntry(service, term) {
-    console.log('Saving history entry ['+service+']['+term+']')
     executeSql('INSERT OR REPLACE INTO history VALUES(?, ?, ?)', [service, term, getNow() ]);
 }
 

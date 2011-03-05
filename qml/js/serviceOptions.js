@@ -87,6 +87,14 @@ var ServiceOptions = function() {
             } else {
                 return lang_list;
             }
+        },
+
+        getLabel: function (service) {
+            if(service == "tlate") {
+                return 'To'
+            } else {
+                return 'Language'
+            }
         }
     }
 

@@ -11,6 +11,7 @@ Rectangle {
     anchors.topMargin: serviceView.serviceInput.height
     anchors.bottomMargin: serviceView.serviceToolbar.height
     anchors.fill: parent
+    Component.onCompleted: clearResult()
 
     Text {
         id:serviceContentText
@@ -29,6 +30,11 @@ Rectangle {
         return ''
     }
 
+    function clearResult() {
+        serviceContentListModel.clear()
+        hideShadows();
+    }
+
     function renderResultText(result_txt) {
         serviceContentText.text = result_txt
         hideShadows()
@@ -40,8 +46,7 @@ Rectangle {
         serviceContentText.visible = false;
         serviceContentList.visible = true;
         if(screen.currentPage == 1) {
-            serviceContentListModel.clear()
-            hideShadows()
+            clearResult()
         } else {
             serviceContentListModel.remove(serviceContentListModel.count-1)
         }

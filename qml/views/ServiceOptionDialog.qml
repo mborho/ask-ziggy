@@ -30,14 +30,13 @@ Rectangle {
         var entries = Appstate.getHistoryEntries(service, limit);
         for(var opt in entries) {
             var parts = Ziggy.parseTerm(entries[opt].cmd);
-            console.log()
             var name = parts[0]
             if(parts[1] != '') {
                 var lang_name = Options.ServiceOptions.get(service, -1, parts[1]);
                 if(lang_name != undefined) name += ' / '+ lang_name;
             }
             serviceOptionModel.append({
-                "ident": entries[opt].service+':'+entries[opt].cmd,
+                "ident": entries[opt].cmd,
                 "name": name,
                 "type": 'history'
             })
@@ -141,7 +140,16 @@ Rectangle {
                     function optionClicked(ident, name, type) {
                         serviceOptionDialog.hide()
                         if(type == 'history') {
-                            console.log('History entry selected: '+ident)
+                            var parts = Ziggy.parseTerm(ident)
+                            serviceView.serviceInput.inputText = parts[0]
+                            if(parts[1] != '') {
+                                screen.currentServiceOption1 = parts[1]
+                                serviceView.optionText1 = Options.ServiceOptions.get(screen.currentService, -1, parts[1]);
+                            } else {
+                                screen.currentServiceOption1 = ""
+                                serviceView.optionText1 = Options.ServiceOptions.getLabel(screen.currentService);
+                            }
+                            Ziggy.askZiggy();
                         } else {
                             if(serviceOptionDialog.selected_ident == "tlate_from") {
                                 screen.currentServiceOption2 = ident

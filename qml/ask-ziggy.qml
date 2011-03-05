@@ -16,7 +16,7 @@ Rectangle {
     property string currentService: ""
     property string currentTerm: ""
     property int currentPage: 1
-    property int currentHistoryLimit: 10
+    property int currentHistoryLimit: 20
     property string lastInput: ""
     property string currentServiceOption1: ""
     property string currentServiceOption2: ""
