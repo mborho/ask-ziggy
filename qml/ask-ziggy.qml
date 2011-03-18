@@ -6,8 +6,10 @@ import "js/Appstate.js" as Appstate
 
 Rectangle {
     id: screen;
-    height: (runtime.orientation == Orientation.Portrait || runtime.orientation == Orientation.PortraitInverted) ? 800 : 424
-    width: (runtime.orientation == Orientation.Portrait || runtime.orientation == Orientation.PortraitInverted) ? 424 : 800
+//     height: (runtime.orientation == Orientation.Portrait || runtime.orientation == Orientation.PortraitInverted) ? 800 : 424
+//     width: (runtime.orientation == Orientation.Portrait || runtime.orientation == Orientation.PortraitInverted) ? 424 : 800
+    height: 800
+    width: 424
     anchors.fill: parent
     property string apiUrl: 'http://ask-ziggy.appspot.com/api/query?&term=';
     property string gradientColorStart: "lightgrey"
